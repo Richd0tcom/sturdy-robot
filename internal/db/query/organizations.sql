@@ -9,4 +9,4 @@ INSERT INTO organizations (
 
 -- name: GetOrganizationByID :one
 SELECT * from users 
-where id = $ LIMIT 1;
+where id = $1 LIMIT 1;

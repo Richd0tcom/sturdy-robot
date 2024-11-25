@@ -11,10 +11,10 @@ INSERT INTO invoices (
 -- name: GetInvoiceByID :one
 SELECT * FROM invoices WHERE id = $1 LIMIT 1;
 
--- name: GetInvoicesCreatedByUser
+-- name: GetInvoicesCreatedByUser :many
 SELECT * FROM invoices WHERE created_by = $1;
 
--- name: UpdateInvoice
+-- name: UpdateInvoice :one
 UPDATE invoices 
 SET 
     invoice_number = $2, 

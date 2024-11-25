@@ -6,11 +6,11 @@ INSERT INTO product_versions (
     uuid_generate_v4(), $1, $2, $3, $4, $5, $6, $7, $8
 ) RETURNING *;
 
--- name: GetProductVersionsByProductID
+-- name: GetProductVersionsByProductID :many
 SELECT * FROM product_versions WHERE product_id = $1;
 
 
--- name: UpdateProductVersion
+-- name: UpdateProductVersion :one
 UPDATE product_versions 
 SET 
     sku = $2, 

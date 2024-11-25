@@ -3,12 +3,11 @@ INSERT INTO users (
   name,
   email,
   address,
-  branch_id,
-
+  branch_id
 ) VALUES (
   $1, $2, $3, $4
 ) RETURNING *;
 
--- name GetUserById :one
+-- name: GetUserById :one
 SELECT * from users 
-where id = $ LIMIT 1;
+where id = $1 LIMIT 1;
