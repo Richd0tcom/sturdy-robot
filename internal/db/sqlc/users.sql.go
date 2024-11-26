@@ -24,7 +24,7 @@ INSERT INTO users (
 `
 
 type CreateUserParams struct {
-	Name     sql.NullString `json:"name"`
+	Name     string         `json:"name"`
 	Email    string         `json:"email"`
 	Address  sql.NullString `json:"address"`
 	BranchID uuid.UUID      `json:"branch_id"`

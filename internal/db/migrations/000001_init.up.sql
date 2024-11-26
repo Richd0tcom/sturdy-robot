@@ -27,7 +27,7 @@ CREATE TABLE branches (
 --users table 
 CREATE TABLE users (
     id UUID PRIMARY KEY,
-    name VARCHAR(255),
+    name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
     address TEXT,
     branch_id UUID NOT NULL REFERENCES branches(id) ON DELETE CASCADE,

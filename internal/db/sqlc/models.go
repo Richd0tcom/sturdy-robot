@@ -199,7 +199,7 @@ type ProductVersion struct {
 
 type User struct {
 	ID        uuid.UUID      `json:"id"`
-	Name      sql.NullString `json:"name"`
+	Name      string         `json:"name"`
 	Email     string         `json:"email"`
 	Address   sql.NullString `json:"address"`
 	BranchID  uuid.UUID      `json:"branch_id"`
