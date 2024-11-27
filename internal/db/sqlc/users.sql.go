@@ -7,31 +7,32 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
+  id,
   name,
   email,
   address,
   branch_id
 ) VALUES (
+  uuid_generate_v4(),
   $1, $2, $3, $4
 ) RETURNING id, name, email, address, branch_id, created_at
 `
 
 type CreateUserParams struct {
-	Name     string         `json:"name"`
-	Email    string         `json:"email"`
-	Address  sql.NullString `json:"address"`
-	BranchID uuid.UUID      `json:"branch_id"`
+	Name     string      `json:"name"`
+	Email    string      `json:"email"`
+	Address  pgtype.Text `json:"address"`
+	BranchID pgtype.UUID `json:"branch_id"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser,
+	row := q.db.QueryRow(ctx, createUser,
 		arg.Name,
 		arg.Email,
 		arg.Address,
@@ -54,8 +55,8 @@ SELECT id, name, email, address, branch_id, created_at from users
 where id = $1 LIMIT 1
 `
 
-func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserById, id)
+func (q *Queries) GetUserById(ctx context.Context, id pgtype.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, getUserById, id)
 	var i User
 	err := row.Scan(
 		&i.ID,

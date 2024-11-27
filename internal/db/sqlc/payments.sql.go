@@ -7,11 +7,8 @@ package db
 
 import (
 	"context"
-	"database/sql"
-	"time"
 
-	"github.com/google/uuid"
-	"github.com/sqlc-dev/pqtype"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createPayment = `-- name: CreatePayment :one
@@ -24,17 +21,17 @@ INSERT INTO payments (
 `
 
 type CreatePaymentParams struct {
-	InvoiceID     uuid.NullUUID         `json:"invoice_id"`
-	PaymentMethod sql.NullString        `json:"payment_method"`
-	PaymentAmount string                `json:"payment_amount"`
-	PaymentRef    sql.NullString        `json:"payment_ref"`
-	PaymentDate   time.Time             `json:"payment_date"`
-	Metadata      pqtype.NullRawMessage `json:"metadata"`
-	CreatedBy     uuid.UUID             `json:"created_by"`
+	InvoiceID     pgtype.UUID        `json:"invoice_id"`
+	PaymentMethod pgtype.Text        `json:"payment_method"`
+	PaymentAmount pgtype.Numeric     `json:"payment_amount"`
+	PaymentRef    pgtype.Text        `json:"payment_ref"`
+	PaymentDate   pgtype.Timestamptz `json:"payment_date"`
+	Metadata      []byte             `json:"metadata"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
 }
 
 func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (Payment, error) {
-	row := q.db.QueryRowContext(ctx, createPayment,
+	row := q.db.QueryRow(ctx, createPayment,
 		arg.InvoiceID,
 		arg.PaymentMethod,
 		arg.PaymentAmount,
@@ -63,8 +60,8 @@ SELECT id, invoice_id, payment_method, payment_amount, payment_ref, payment_date
 `
 
 // Get payment by ID
-func (q *Queries) GetPaymentByID(ctx context.Context, id uuid.UUID) (Payment, error) {
-	row := q.db.QueryRowContext(ctx, getPaymentByID, id)
+func (q *Queries) GetPaymentByID(ctx context.Context, id pgtype.UUID) (Payment, error) {
+	row := q.db.QueryRow(ctx, getPaymentByID, id)
 	var i Payment
 	err := row.Scan(
 		&i.ID,
@@ -85,8 +82,8 @@ SELECT id, invoice_id, payment_method, payment_amount, payment_ref, payment_date
 `
 
 // Get payments by invoice ID
-func (q *Queries) GetPaymentsByInvoiceID(ctx context.Context, invoiceID uuid.NullUUID) ([]Payment, error) {
-	rows, err := q.db.QueryContext(ctx, getPaymentsByInvoiceID, invoiceID)
+func (q *Queries) GetPaymentsByInvoiceID(ctx context.Context, invoiceID pgtype.UUID) ([]Payment, error) {
+	rows, err := q.db.Query(ctx, getPaymentsByInvoiceID, invoiceID)
 	if err != nil {
 		return nil, err
 	}
@@ -109,9 +106,6 @@ func (q *Queries) GetPaymentsByInvoiceID(ctx context.Context, invoiceID uuid.Nul
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -127,17 +121,17 @@ WHERE id = $1 RETURNING id, invoice_id, payment_method, payment_amount, payment_
 `
 
 type UpdatePaymentParams struct {
-	ID            uuid.UUID             `json:"id"`
-	PaymentMethod sql.NullString        `json:"payment_method"`
-	PaymentAmount string                `json:"payment_amount"`
-	PaymentRef    sql.NullString        `json:"payment_ref"`
-	PaymentDate   time.Time             `json:"payment_date"`
-	Metadata      pqtype.NullRawMessage `json:"metadata"`
+	ID            pgtype.UUID        `json:"id"`
+	PaymentMethod pgtype.Text        `json:"payment_method"`
+	PaymentAmount pgtype.Numeric     `json:"payment_amount"`
+	PaymentRef    pgtype.Text        `json:"payment_ref"`
+	PaymentDate   pgtype.Timestamptz `json:"payment_date"`
+	Metadata      []byte             `json:"metadata"`
 }
 
 // Update payment
 func (q *Queries) UpdatePayment(ctx context.Context, arg UpdatePaymentParams) (Payment, error) {
-	row := q.db.QueryRowContext(ctx, updatePayment,
+	row := q.db.QueryRow(ctx, updatePayment,
 		arg.ID,
 		arg.PaymentMethod,
 		arg.PaymentAmount,

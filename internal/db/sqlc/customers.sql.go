@@ -7,10 +7,8 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
-	"github.com/google/uuid"
-	"github.com/sqlc-dev/pqtype"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createCustomer = `-- name: CreateCustomer :one
@@ -20,14 +18,14 @@ RETURNING id, name, email, phone, billing_address, created_at
 `
 
 type CreateCustomerParams struct {
-	Name           string                `json:"name"`
-	Email          sql.NullString        `json:"email"`
-	Phone          sql.NullString        `json:"phone"`
-	BillingAddress pqtype.NullRawMessage `json:"billing_address"`
+	Name           string      `json:"name"`
+	Email          pgtype.Text `json:"email"`
+	Phone          pgtype.Text `json:"phone"`
+	BillingAddress []byte      `json:"billing_address"`
 }
 
 func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) (Customer, error) {
-	row := q.db.QueryRowContext(ctx, createCustomer,
+	row := q.db.QueryRow(ctx, createCustomer,
 		arg.Name,
 		arg.Email,
 		arg.Phone,
@@ -50,8 +48,8 @@ DELETE FROM customers
 WHERE id = $1
 `
 
-func (q *Queries) DeleteCustomerByID(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteCustomerByID, id)
+func (q *Queries) DeleteCustomerByID(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteCustomerByID, id)
 	return err
 }
 
@@ -60,8 +58,8 @@ SELECT id, name, email, phone, billing_address, created_at FROM customers
 WHERE email = $1 LIMIT 1
 `
 
-func (q *Queries) GetCustomerByEmail(ctx context.Context, email sql.NullString) (Customer, error) {
-	row := q.db.QueryRowContext(ctx, getCustomerByEmail, email)
+func (q *Queries) GetCustomerByEmail(ctx context.Context, email pgtype.Text) (Customer, error) {
+	row := q.db.QueryRow(ctx, getCustomerByEmail, email)
 	var i Customer
 	err := row.Scan(
 		&i.ID,

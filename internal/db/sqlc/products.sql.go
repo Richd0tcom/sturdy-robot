@@ -7,9 +7,8 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createProduct = `-- name: CreateProduct :one
@@ -23,20 +22,20 @@ INSERT INTO products (
 `
 
 type CreateProductParams struct {
-	CategoryID          uuid.NullUUID  `json:"category_id"`
-	BranchID            uuid.UUID      `json:"branch_id"`
+	CategoryID          pgtype.UUID    `json:"category_id"`
+	BranchID            pgtype.UUID    `json:"branch_id"`
 	Name                string         `json:"name"`
 	ProductType         string         `json:"product_type"`
-	ServicePricingModel sql.NullString `json:"service_pricing_model"`
-	DefaultUnit         sql.NullString `json:"default_unit"`
-	IsBillable          sql.NullBool   `json:"is_billable"`
-	Sku                 sql.NullString `json:"sku"`
-	Description         sql.NullString `json:"description"`
-	BasePrice           sql.NullString `json:"base_price"`
+	ServicePricingModel pgtype.Text    `json:"service_pricing_model"`
+	DefaultUnit         pgtype.Text    `json:"default_unit"`
+	IsBillable          pgtype.Bool    `json:"is_billable"`
+	Sku                 string         `json:"sku"`
+	Description         pgtype.Text    `json:"description"`
+	BasePrice           pgtype.Numeric `json:"base_price"`
 }
 
 func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error) {
-	row := q.db.QueryRowContext(ctx, createProduct,
+	row := q.db.QueryRow(ctx, createProduct,
 		arg.CategoryID,
 		arg.BranchID,
 		arg.Name,
@@ -73,8 +72,8 @@ SELECT id, category_id, branch_id, name, product_type, service_pricing_model, de
 WHERE branch_id = $1 LIMIT 1
 `
 
-func (q *Queries) GetProductsByBranchID(ctx context.Context, branchID uuid.UUID) (Product, error) {
-	row := q.db.QueryRowContext(ctx, getProductsByBranchID, branchID)
+func (q *Queries) GetProductsByBranchID(ctx context.Context, branchID pgtype.UUID) (Product, error) {
+	row := q.db.QueryRow(ctx, getProductsByBranchID, branchID)
 	var i Product
 	err := row.Scan(
 		&i.ID,
@@ -100,8 +99,8 @@ SELECT id, category_id, branch_id, name, product_type, service_pricing_model, de
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetProductsByID(ctx context.Context, id uuid.UUID) (Product, error) {
-	row := q.db.QueryRowContext(ctx, getProductsByID, id)
+func (q *Queries) GetProductsByID(ctx context.Context, id pgtype.UUID) (Product, error) {
+	row := q.db.QueryRow(ctx, getProductsByID, id)
 	var i Product
 	err := row.Scan(
 		&i.ID,
@@ -139,20 +138,20 @@ RETURNING id, category_id, branch_id, name, product_type, service_pricing_model,
 `
 
 type UpdateProductParams struct {
-	ID                  uuid.UUID      `json:"id"`
-	CategoryID          uuid.NullUUID  `json:"category_id"`
+	ID                  pgtype.UUID    `json:"id"`
+	CategoryID          pgtype.UUID    `json:"category_id"`
 	Name                string         `json:"name"`
 	ProductType         string         `json:"product_type"`
-	ServicePricingModel sql.NullString `json:"service_pricing_model"`
-	DefaultUnit         sql.NullString `json:"default_unit"`
-	IsBillable          sql.NullBool   `json:"is_billable"`
-	Sku                 sql.NullString `json:"sku"`
-	Description         sql.NullString `json:"description"`
-	BasePrice           sql.NullString `json:"base_price"`
+	ServicePricingModel pgtype.Text    `json:"service_pricing_model"`
+	DefaultUnit         pgtype.Text    `json:"default_unit"`
+	IsBillable          pgtype.Bool    `json:"is_billable"`
+	Sku                 string         `json:"sku"`
+	Description         pgtype.Text    `json:"description"`
+	BasePrice           pgtype.Numeric `json:"base_price"`
 }
 
 func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error) {
-	row := q.db.QueryRowContext(ctx, updateProduct,
+	row := q.db.QueryRow(ctx, updateProduct,
 		arg.ID,
 		arg.CategoryID,
 		arg.Name,

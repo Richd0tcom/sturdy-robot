@@ -7,9 +7,8 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createCategory = `-- name: CreateCategory :one
@@ -19,14 +18,14 @@ RETURNING id, parent_id, name, branch_id, description, created_at
 `
 
 type CreateCategoryParams struct {
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
-	ParentID    uuid.NullUUID  `json:"parent_id"`
-	BranchID    uuid.UUID      `json:"branch_id"`
+	Name        string      `json:"name"`
+	Description pgtype.Text `json:"description"`
+	ParentID    pgtype.UUID `json:"parent_id"`
+	BranchID    pgtype.UUID `json:"branch_id"`
 }
 
 func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error) {
-	row := q.db.QueryRowContext(ctx, createCategory,
+	row := q.db.QueryRow(ctx, createCategory,
 		arg.Name,
 		arg.Description,
 		arg.ParentID,
@@ -49,8 +48,8 @@ SELECT id, parent_id, name, branch_id, description, created_at FROM categories
 WHERE branch_id = $1
 `
 
-func (q *Queries) GetCategoriesByBranchID(ctx context.Context, branchID uuid.UUID) ([]Category, error) {
-	rows, err := q.db.QueryContext(ctx, getCategoriesByBranchID, branchID)
+func (q *Queries) GetCategoriesByBranchID(ctx context.Context, branchID pgtype.UUID) ([]Category, error) {
+	rows, err := q.db.Query(ctx, getCategoriesByBranchID, branchID)
 	if err != nil {
 		return nil, err
 	}
@@ -69,9 +68,6 @@ func (q *Queries) GetCategoriesByBranchID(ctx context.Context, branchID uuid.UUI
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

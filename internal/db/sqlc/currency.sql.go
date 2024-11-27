@@ -7,9 +7,8 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createCurrency = `-- name: CreateCurrency :one
@@ -19,12 +18,12 @@ RETURNING id, name, symbol, created_at
 `
 
 type CreateCurrencyParams struct {
-	Name   string         `json:"name"`
-	Symbol sql.NullString `json:"symbol"`
+	Name   string      `json:"name"`
+	Symbol pgtype.Text `json:"symbol"`
 }
 
 func (q *Queries) CreateCurrency(ctx context.Context, arg CreateCurrencyParams) (Currency, error) {
-	row := q.db.QueryRowContext(ctx, createCurrency, arg.Name, arg.Symbol)
+	row := q.db.QueryRow(ctx, createCurrency, arg.Name, arg.Symbol)
 	var i Currency
 	err := row.Scan(
 		&i.ID,
@@ -40,8 +39,8 @@ SELECT id, name, symbol, created_at FROM currency
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetCurrencyByID(ctx context.Context, id uuid.UUID) (Currency, error) {
-	row := q.db.QueryRowContext(ctx, getCurrencyByID, id)
+func (q *Queries) GetCurrencyByID(ctx context.Context, id pgtype.UUID) (Currency, error) {
+	row := q.db.QueryRow(ctx, getCurrencyByID, id)
 	var i Currency
 	err := row.Scan(
 		&i.ID,

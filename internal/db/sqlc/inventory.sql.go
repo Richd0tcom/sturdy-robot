@@ -7,9 +7,8 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createInventoryRecord = `-- name: CreateInventoryRecord :one
@@ -21,16 +20,16 @@ INSERT INTO inventory (
 `
 
 type CreateInventoryRecordParams struct {
-	VersionID   uuid.UUID      `json:"version_id"`
-	BranchID    uuid.UUID      `json:"branch_id"`
-	Quantity    sql.NullInt32  `json:"quantity"`
-	UnitCost    sql.NullString `json:"unit_cost"`
-	LastCounted sql.NullTime   `json:"last_counted"`
+	VersionID   pgtype.UUID        `json:"version_id"`
+	BranchID    pgtype.UUID        `json:"branch_id"`
+	Quantity    pgtype.Int4        `json:"quantity"`
+	UnitCost    pgtype.Numeric     `json:"unit_cost"`
+	LastCounted pgtype.Timestamptz `json:"last_counted"`
 }
 
 // Insert inventory record
 func (q *Queries) CreateInventoryRecord(ctx context.Context, arg CreateInventoryRecordParams) (Inventory, error) {
-	row := q.db.QueryRowContext(ctx, createInventoryRecord,
+	row := q.db.QueryRow(ctx, createInventoryRecord,
 		arg.VersionID,
 		arg.BranchID,
 		arg.Quantity,
@@ -54,8 +53,8 @@ SELECT id, version_id, branch_id, quantity, unit_cost, last_counted FROM invento
 `
 
 // Get inventory by branch ID
-func (q *Queries) GetInventoryByBranchID(ctx context.Context, branchID uuid.UUID) ([]Inventory, error) {
-	rows, err := q.db.QueryContext(ctx, getInventoryByBranchID, branchID)
+func (q *Queries) GetInventoryByBranchID(ctx context.Context, branchID pgtype.UUID) ([]Inventory, error) {
+	rows, err := q.db.Query(ctx, getInventoryByBranchID, branchID)
 	if err != nil {
 		return nil, err
 	}
@@ -75,9 +74,6 @@ func (q *Queries) GetInventoryByBranchID(ctx context.Context, branchID uuid.UUID
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -89,8 +85,8 @@ SELECT id, version_id, branch_id, quantity, unit_cost, last_counted FROM invento
 `
 
 // Get inventory by ID
-func (q *Queries) GetInventoryByID(ctx context.Context, id uuid.UUID) (Inventory, error) {
-	row := q.db.QueryRowContext(ctx, getInventoryByID, id)
+func (q *Queries) GetInventoryByID(ctx context.Context, id pgtype.UUID) (Inventory, error) {
+	row := q.db.QueryRow(ctx, getInventoryByID, id)
 	var i Inventory
 	err := row.Scan(
 		&i.ID,
@@ -108,8 +104,8 @@ SELECT id, version_id, branch_id, quantity, unit_cost, last_counted FROM invento
 `
 
 // Get inventory by version ID
-func (q *Queries) GetInventoryByVersionID(ctx context.Context, versionID uuid.UUID) (Inventory, error) {
-	row := q.db.QueryRowContext(ctx, getInventoryByVersionID, versionID)
+func (q *Queries) GetInventoryByVersionID(ctx context.Context, versionID pgtype.UUID) (Inventory, error) {
+	row := q.db.QueryRow(ctx, getInventoryByVersionID, versionID)
 	var i Inventory
 	err := row.Scan(
 		&i.ID,
@@ -130,15 +126,15 @@ WHERE id = $1 RETURNING id, version_id, branch_id, quantity, unit_cost, last_cou
 `
 
 type UpdateInventoryParams struct {
-	ID          uuid.UUID      `json:"id"`
-	Quantity    sql.NullInt32  `json:"quantity"`
-	UnitCost    sql.NullString `json:"unit_cost"`
-	LastCounted sql.NullTime   `json:"last_counted"`
+	ID          pgtype.UUID        `json:"id"`
+	Quantity    pgtype.Int4        `json:"quantity"`
+	UnitCost    pgtype.Numeric     `json:"unit_cost"`
+	LastCounted pgtype.Timestamptz `json:"last_counted"`
 }
 
 // Update inventory
 func (q *Queries) UpdateInventory(ctx context.Context, arg UpdateInventoryParams) (Inventory, error) {
-	row := q.db.QueryRowContext(ctx, updateInventory,
+	row := q.db.QueryRow(ctx, updateInventory,
 		arg.ID,
 		arg.Quantity,
 		arg.UnitCost,

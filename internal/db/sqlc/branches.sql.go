@@ -7,30 +7,31 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createBranch = `-- name: CreateBranch :one
 INSERT INTO branches (
+  id, 
   name,
   address,
   organization_id
 
 ) VALUES (
+  uuid_generate_v4(),
   $1, $2, $3
 ) RETURNING id, name, address, is_default, organization_id, created_at
 `
 
 type CreateBranchParams struct {
-	Name           string         `json:"name"`
-	Address        sql.NullString `json:"address"`
-	OrganizationID uuid.UUID      `json:"organization_id"`
+	Name           string      `json:"name"`
+	Address        pgtype.Text `json:"address"`
+	OrganizationID pgtype.UUID `json:"organization_id"`
 }
 
 func (q *Queries) CreateBranch(ctx context.Context, arg CreateBranchParams) (Branch, error) {
-	row := q.db.QueryRowContext(ctx, createBranch, arg.Name, arg.Address, arg.OrganizationID)
+	row := q.db.QueryRow(ctx, createBranch, arg.Name, arg.Address, arg.OrganizationID)
 	var i Branch
 	err := row.Scan(
 		&i.ID,
@@ -48,8 +49,8 @@ SELECT id, name, address, is_default, organization_id, created_at from branches
 where id = $1 LIMIT 1
 `
 
-func (q *Queries) GetBranchByID(ctx context.Context, id uuid.UUID) (Branch, error) {
-	row := q.db.QueryRowContext(ctx, getBranchByID, id)
+func (q *Queries) GetBranchByID(ctx context.Context, id pgtype.UUID) (Branch, error) {
+	row := q.db.QueryRow(ctx, getBranchByID, id)
 	var i Branch
 	err := row.Scan(
 		&i.ID,

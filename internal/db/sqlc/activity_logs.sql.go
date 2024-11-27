@@ -8,8 +8,7 @@ package db
 import (
 	"context"
 
-	"github.com/google/uuid"
-	"github.com/sqlc-dev/pqtype"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createActivityLog = `-- name: CreateActivityLog :one
@@ -19,15 +18,15 @@ RETURNING id, entity_type, entity_id, action, changes, created_at, user_id
 `
 
 type CreateActivityLogParams struct {
-	EntityType string                `json:"entity_type"`
-	EntityID   uuid.UUID             `json:"entity_id"`
-	Action     string                `json:"action"`
-	Changes    pqtype.NullRawMessage `json:"changes"`
-	UserID     uuid.NullUUID         `json:"user_id"`
+	EntityType string      `json:"entity_type"`
+	EntityID   pgtype.UUID `json:"entity_id"`
+	Action     string      `json:"action"`
+	Changes    []byte      `json:"changes"`
+	UserID     pgtype.UUID `json:"user_id"`
 }
 
 func (q *Queries) CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (ActivityLog, error) {
-	row := q.db.QueryRowContext(ctx, createActivityLog,
+	row := q.db.QueryRow(ctx, createActivityLog,
 		arg.EntityType,
 		arg.EntityID,
 		arg.Action,
@@ -52,8 +51,8 @@ SELECT id, entity_type, entity_id, action, changes, created_at, user_id FROM act
 WHERE entity_id = $1
 `
 
-func (q *Queries) GetActivityLogByEntityID(ctx context.Context, entityID uuid.UUID) ([]ActivityLog, error) {
-	rows, err := q.db.QueryContext(ctx, getActivityLogByEntityID, entityID)
+func (q *Queries) GetActivityLogByEntityID(ctx context.Context, entityID pgtype.UUID) ([]ActivityLog, error) {
+	rows, err := q.db.Query(ctx, getActivityLogByEntityID, entityID)
 	if err != nil {
 		return nil, err
 	}
@@ -73,9 +72,6 @@ func (q *Queries) GetActivityLogByEntityID(ctx context.Context, entityID uuid.UU
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -88,8 +84,8 @@ SELECT id, entity_type, entity_id, action, changes, created_at, user_id FROM act
 WHERE user_id = $1
 `
 
-func (q *Queries) GetActivityLogsByUserID(ctx context.Context, userID uuid.NullUUID) ([]ActivityLog, error) {
-	rows, err := q.db.QueryContext(ctx, getActivityLogsByUserID, userID)
+func (q *Queries) GetActivityLogsByUserID(ctx context.Context, userID pgtype.UUID) ([]ActivityLog, error) {
+	rows, err := q.db.Query(ctx, getActivityLogsByUserID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -109,9 +105,6 @@ func (q *Queries) GetActivityLogsByUserID(ctx context.Context, userID uuid.NullU
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

@@ -1,10 +1,12 @@
 -- name: CreateBranch :one
 INSERT INTO branches (
+  id, 
   name,
   address,
   organization_id
 
 ) VALUES (
+  uuid_generate_v4(),
   $1, $2, $3
 ) RETURNING *;
 

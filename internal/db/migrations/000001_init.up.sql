@@ -37,11 +37,11 @@ CREATE TABLE users (
 --payment_info table 
 CREATE TABLE payment_info (
     id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(id),
-    account_no VARCHAR(255),
+    user_id UUID NOT NULL REFERENCES users(id),
+    account_no VARCHAR(255) NOT NULL,
     routing_no VARCHAR(255),
-    account_name VARCHAR(255),
-    bank_name VARCHAR(255),
+    account_name VARCHAR(255) NOT NULL,
+    bank_name VARCHAR(255) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -61,14 +61,14 @@ CREATE TABLE categories (
 -- Products table
 CREATE TABLE products (
     id UUID PRIMARY KEY,
-    category_id UUID REFERENCES categories(id),
+    category_id UUID NOT NULL REFERENCES categories(id),
     branch_id UUID NOT NULL REFERENCES branches(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     product_type VARCHAR(50) NOT NULL DEFAULT 'physical',
     service_pricing_model VARCHAR(50), --hourly, per-project, tiered
     default_unit VARCHAR(50),-- hours, projects, sessions
     is_billable BOOLEAN DEFAULT true,
-    sku VARCHAR(50) UNIQUE,
+    sku VARCHAR(50) NOT NULL UNIQUE,
     description TEXT,
     base_price DECIMAL(15,2),
     custom_fields JSONB,
@@ -81,7 +81,6 @@ CREATE TABLE product_versions (
     id UUID PRIMARY KEY,
     product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     branch_id UUID NOT NULL REFERENCES branches(id) ON DELETE CASCADE,
-    sku VARCHAR(50) UNIQUE,
     name VARCHAR(255) NOT NULL,
     price_adjustment DECIMAL(15,2) DEFAULT 0,
     attributes JSONB,

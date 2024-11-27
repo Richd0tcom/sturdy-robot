@@ -2,39 +2,45 @@ package service
 
 import (
 	"context"
-	"database/sql"
+	// "database/sql"
+
+	// "database/sql"
 	"log"
 	"testing"
 
 	"github.com/Richd0tcom/sturdy-robot/internal/config"
 	db "github.com/Richd0tcom/sturdy-robot/internal/db/sqlc"
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
 )
 
 
 var testQueries *db.Queries
 
-var testDB *sql.DB
 
 func init(){
-	config, err:= config.LoadConfig("../..")
+	config, err:= config.LoadConfig("../../cmd/.env")
 	// /Users/richdotcom/go/src/github.com/Richd0tcom/SafeX-Pay/.env
 	// /Users/richdotcom/go/src/github.com/Richd0tcom/SafeX-Pay/db/sqlc/main_test.go
 	if err != nil {
 		log.Fatal("could not read configs", err)
 	}
-	testDB, err = sql.Open(config.DbDriver, config.DbUri)
+	// testDB, err = sql.Open(config.DbDriver, config.DbUri)
+	connPool, err:= pgxpool.New(context.Background(), config.DbUri)
 	if err != nil {
 		log.Fatal("cannot connect to database", err)
 	}
 
-	testQueries = db.New(testDB)
-
-	
+	testQueries = db.New(connPool)
 }
 
 func TestCreateInvoice(t *testing.T) {
+
+	var c context.Context = context.Background()
 
 	//create organization
 	org, err:= testQueries.CreateOrganization(context.Background(), db.CreateOrganizationParams{
@@ -47,7 +53,7 @@ func TestCreateInvoice(t *testing.T) {
 
 	branch, err := testQueries.CreateBranch(context.Background(), db.CreateBranchParams{
 		OrganizationID: org.ID,
-		Address: sql.NullString{
+		Address: pgtype.Text{
 			String: "somewhere",
 		},
 		Name: "Branch1",
@@ -65,5 +71,71 @@ func TestCreateInvoice(t *testing.T) {
 	require.NoError(t,err)
 	require.NotEmpty(t, user)
 
+	payInfo,err:= testQueries.CreatePaymentInfo(context.Background(), db.CreatePaymentInfoParams{
+		UserID: user.ID,
+		AccountNo: "9182736450",
+		AccountName: user.Name,
+		BankName: "YouBank",
+	})
+
+	require.NoError(t,err)
+	require.NotEmpty(t, payInfo)
+
+	cat, err:= testQueries.CreateCategory(context.Background(), db.CreateCategoryParams{
+		BranchID: branch.ID,
+		Name: "Phones",
+	})
+
+	require.NoError(t,err)
+	require.NotEmpty(t, cat)
+
+	product,err:= testQueries.CreateProduct(c, db.CreateProductParams{
+		CategoryID: cat.ID,
+		BranchID: branch.ID,
+		Name: "nokia",
+		ProductType: "phyisical",
+		Sku: "NK-",
+	})
+
+	require.NoError(t,err)
+	require.NotEmpty(t, product)
+
+	product_version,err:= testQueries.CreateProductVersion(c, db.CreateProductVersionParams{
+		ProductID: product.ID,
+		BranchID: product.BranchID,
+		Name: "S22",
+	})
+
+	require.NoError(t,err)
+	require.NotEmpty(t, product_version)
+
+
+	cost, _:= decimal.NewFromString("50.00")
 	
+	inventory, err:= testQueries.CreateInventoryRecord(c, db.CreateInventoryRecordParams{
+		VersionID: product_version.ID,
+		BranchID: product_version.BranchID,
+		Quantity: pgtype.Int4{
+			Int32: 16,
+		},
+		UnitCost: pgtype.Numeric{
+			Int: cost.BigInt(),
+			Exp: cost.Exponent(),
+		},
+
+	})
+
+	require.NoError(t,err)
+	require.NotEmpty(t, inventory)
+
+	currency, err:= testQueries.CreateCurrency(c, db.CreateCurrencyParams{
+		Name: "USD",
+		Symbol: pgtype.Text{
+			String: "$",
+		},
+	})
+
+	require.NoError(t,err)
+	require.NotEmpty(t, currency)
+
 }

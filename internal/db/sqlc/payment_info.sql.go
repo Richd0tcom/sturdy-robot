@@ -7,9 +7,8 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createPaymentInfo = `-- name: CreatePaymentInfo :one
@@ -18,16 +17,16 @@ VALUES (uuid_generate_v4(), $1, $2, $3, $4, $5) RETURNING id, user_id, account_n
 `
 
 type CreatePaymentInfoParams struct {
-	UserID      uuid.NullUUID  `json:"user_id"`
-	AccountNo   sql.NullString `json:"account_no"`
-	RoutingNo   sql.NullString `json:"routing_no"`
-	AccountName sql.NullString `json:"account_name"`
-	BankName    sql.NullString `json:"bank_name"`
+	UserID      pgtype.UUID `json:"user_id"`
+	AccountNo   string      `json:"account_no"`
+	RoutingNo   pgtype.Text `json:"routing_no"`
+	AccountName string      `json:"account_name"`
+	BankName    string      `json:"bank_name"`
 }
 
 // Insert payment info
 func (q *Queries) CreatePaymentInfo(ctx context.Context, arg CreatePaymentInfoParams) (PaymentInfo, error) {
-	row := q.db.QueryRowContext(ctx, createPaymentInfo,
+	row := q.db.QueryRow(ctx, createPaymentInfo,
 		arg.UserID,
 		arg.AccountNo,
 		arg.RoutingNo,
@@ -51,8 +50,8 @@ const getPaymentInfoByUserID = `-- name: GetPaymentInfoByUserID :one
 SELECT id, user_id, account_no, routing_no, account_name, bank_name, created_at FROM payment_info WHERE user_id = $1 LIMIT 1
 `
 
-func (q *Queries) GetPaymentInfoByUserID(ctx context.Context, userID uuid.NullUUID) (PaymentInfo, error) {
-	row := q.db.QueryRowContext(ctx, getPaymentInfoByUserID, userID)
+func (q *Queries) GetPaymentInfoByUserID(ctx context.Context, userID pgtype.UUID) (PaymentInfo, error) {
+	row := q.db.QueryRow(ctx, getPaymentInfoByUserID, userID)
 	var i PaymentInfo
 	err := row.Scan(
 		&i.ID,
@@ -73,15 +72,15 @@ WHERE user_id = $1
 `
 
 type UpdatePaymentInfoParams struct {
-	UserID      uuid.NullUUID  `json:"user_id"`
-	AccountNo   sql.NullString `json:"account_no"`
-	RoutingNo   sql.NullString `json:"routing_no"`
-	AccountName sql.NullString `json:"account_name"`
-	BankName    sql.NullString `json:"bank_name"`
+	UserID      pgtype.UUID `json:"user_id"`
+	AccountNo   string      `json:"account_no"`
+	RoutingNo   pgtype.Text `json:"routing_no"`
+	AccountName string      `json:"account_name"`
+	BankName    string      `json:"bank_name"`
 }
 
 func (q *Queries) UpdatePaymentInfo(ctx context.Context, arg UpdatePaymentInfoParams) error {
-	_, err := q.db.ExecContext(ctx, updatePaymentInfo,
+	_, err := q.db.Exec(ctx, updatePaymentInfo,
 		arg.UserID,
 		arg.AccountNo,
 		arg.RoutingNo,

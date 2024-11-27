@@ -6,6 +6,14 @@ INSERT INTO invoice_items (
     uuid_generate_v4(), $1, $2, $3, $4, $5
 ) RETURNING *;
 
+-- name: CreateMultipleInvoiceItems :copyfrom
+INSERT INTO invoice_items (
+    invoice_id, version_id, quantity, 
+    unit_price, subtotal
+) VALUES (
+    $1, $2, $3, $4, $5
+);
+
 -- name: GetInvoiceItemsByInvoiceID :many
 SELECT * FROM invoice_items WHERE invoice_id = $1;
 

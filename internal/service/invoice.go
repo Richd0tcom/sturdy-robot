@@ -10,14 +10,12 @@ import (
 
 type Invoice db.Invoice
 
-func (i *Invoice) ToDomain() {
-	
-}
-
 // create new invoice
 func CreateNewInvoice(ctx context.Context, args db.CreateInvoiceParams, st db.Store) (db.Invoice, error){
 
 	invoice, err:= st.CreateInvoice(ctx, args)
+
+	
 
 	return invoice, err
 }

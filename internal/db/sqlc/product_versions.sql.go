@@ -7,37 +7,33 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
-	"github.com/google/uuid"
-	"github.com/sqlc-dev/pqtype"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createProductVersion = `-- name: CreateProductVersion :one
 INSERT INTO product_versions (
-    id, product_id, branch_id, sku, name, 
+    id, product_id, branch_id, name, 
     price_adjustment, attributes, stock_quantity, reorder_point
 ) VALUES (
-    uuid_generate_v4(), $1, $2, $3, $4, $5, $6, $7, $8
-) RETURNING id, product_id, branch_id, sku, name, price_adjustment, attributes, stock_quantity, reorder_point, created_at
+    uuid_generate_v4(), $1, $2, $3, $4, $5, $6, $7
+) RETURNING id, product_id, branch_id, name, price_adjustment, attributes, stock_quantity, reorder_point, created_at
 `
 
 type CreateProductVersionParams struct {
-	ProductID       uuid.UUID             `json:"product_id"`
-	BranchID        uuid.UUID             `json:"branch_id"`
-	Sku             sql.NullString        `json:"sku"`
-	Name            string                `json:"name"`
-	PriceAdjustment sql.NullString        `json:"price_adjustment"`
-	Attributes      pqtype.NullRawMessage `json:"attributes"`
-	StockQuantity   sql.NullInt32         `json:"stock_quantity"`
-	ReorderPoint    sql.NullInt32         `json:"reorder_point"`
+	ProductID       pgtype.UUID    `json:"product_id"`
+	BranchID        pgtype.UUID    `json:"branch_id"`
+	Name            string         `json:"name"`
+	PriceAdjustment pgtype.Numeric `json:"price_adjustment"`
+	Attributes      []byte         `json:"attributes"`
+	StockQuantity   pgtype.Int4    `json:"stock_quantity"`
+	ReorderPoint    pgtype.Int4    `json:"reorder_point"`
 }
 
 func (q *Queries) CreateProductVersion(ctx context.Context, arg CreateProductVersionParams) (ProductVersion, error) {
-	row := q.db.QueryRowContext(ctx, createProductVersion,
+	row := q.db.QueryRow(ctx, createProductVersion,
 		arg.ProductID,
 		arg.BranchID,
-		arg.Sku,
 		arg.Name,
 		arg.PriceAdjustment,
 		arg.Attributes,
@@ -49,7 +45,6 @@ func (q *Queries) CreateProductVersion(ctx context.Context, arg CreateProductVer
 		&i.ID,
 		&i.ProductID,
 		&i.BranchID,
-		&i.Sku,
 		&i.Name,
 		&i.PriceAdjustment,
 		&i.Attributes,
@@ -61,11 +56,11 @@ func (q *Queries) CreateProductVersion(ctx context.Context, arg CreateProductVer
 }
 
 const getProductVersionsByProductID = `-- name: GetProductVersionsByProductID :many
-SELECT id, product_id, branch_id, sku, name, price_adjustment, attributes, stock_quantity, reorder_point, created_at FROM product_versions WHERE product_id = $1
+SELECT id, product_id, branch_id, name, price_adjustment, attributes, stock_quantity, reorder_point, created_at FROM product_versions WHERE product_id = $1
 `
 
-func (q *Queries) GetProductVersionsByProductID(ctx context.Context, productID uuid.UUID) ([]ProductVersion, error) {
-	rows, err := q.db.QueryContext(ctx, getProductVersionsByProductID, productID)
+func (q *Queries) GetProductVersionsByProductID(ctx context.Context, productID pgtype.UUID) ([]ProductVersion, error) {
+	rows, err := q.db.Query(ctx, getProductVersionsByProductID, productID)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +72,6 @@ func (q *Queries) GetProductVersionsByProductID(ctx context.Context, productID u
 			&i.ID,
 			&i.ProductID,
 			&i.BranchID,
-			&i.Sku,
 			&i.Name,
 			&i.PriceAdjustment,
 			&i.Attributes,
@@ -89,9 +83,6 @@ func (q *Queries) GetProductVersionsByProductID(ctx context.Context, productID u
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -101,30 +92,27 @@ func (q *Queries) GetProductVersionsByProductID(ctx context.Context, productID u
 const updateProductVersion = `-- name: UpdateProductVersion :one
 UPDATE product_versions 
 SET 
-    sku = $2, 
-    name = $3, 
-    price_adjustment = $4,
-    attributes = $5,
-    stock_quantity = $6,
-    reorder_point = $7
+    name = $2, 
+    price_adjustment = $3,
+    attributes = $4,
+    stock_quantity = $5,
+    reorder_point = $6
 WHERE id = $1 
-RETURNING id, product_id, branch_id, sku, name, price_adjustment, attributes, stock_quantity, reorder_point, created_at
+RETURNING id, product_id, branch_id, name, price_adjustment, attributes, stock_quantity, reorder_point, created_at
 `
 
 type UpdateProductVersionParams struct {
-	ID              uuid.UUID             `json:"id"`
-	Sku             sql.NullString        `json:"sku"`
-	Name            string                `json:"name"`
-	PriceAdjustment sql.NullString        `json:"price_adjustment"`
-	Attributes      pqtype.NullRawMessage `json:"attributes"`
-	StockQuantity   sql.NullInt32         `json:"stock_quantity"`
-	ReorderPoint    sql.NullInt32         `json:"reorder_point"`
+	ID              pgtype.UUID    `json:"id"`
+	Name            string         `json:"name"`
+	PriceAdjustment pgtype.Numeric `json:"price_adjustment"`
+	Attributes      []byte         `json:"attributes"`
+	StockQuantity   pgtype.Int4    `json:"stock_quantity"`
+	ReorderPoint    pgtype.Int4    `json:"reorder_point"`
 }
 
 func (q *Queries) UpdateProductVersion(ctx context.Context, arg UpdateProductVersionParams) (ProductVersion, error) {
-	row := q.db.QueryRowContext(ctx, updateProductVersion,
+	row := q.db.QueryRow(ctx, updateProductVersion,
 		arg.ID,
-		arg.Sku,
 		arg.Name,
 		arg.PriceAdjustment,
 		arg.Attributes,
@@ -136,7 +124,6 @@ func (q *Queries) UpdateProductVersion(ctx context.Context, arg UpdateProductVer
 		&i.ID,
 		&i.ProductID,
 		&i.BranchID,
-		&i.Sku,
 		&i.Name,
 		&i.PriceAdjustment,
 		&i.Attributes,

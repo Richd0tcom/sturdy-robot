@@ -5,13 +5,10 @@
 package db
 
 import (
-	"database/sql"
 	"database/sql/driver"
 	"fmt"
-	"time"
 
-	"github.com/google/uuid"
-	"github.com/sqlc-dev/pqtype"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type ProductType string
@@ -57,151 +54,150 @@ func (ns NullProductType) Value() (driver.Value, error) {
 }
 
 type ActivityLog struct {
-	ID         uuid.UUID             `json:"id"`
-	EntityType string                `json:"entity_type"`
-	EntityID   uuid.UUID             `json:"entity_id"`
-	Action     string                `json:"action"`
-	Changes    pqtype.NullRawMessage `json:"changes"`
-	CreatedAt  sql.NullTime          `json:"created_at"`
-	UserID     uuid.NullUUID         `json:"user_id"`
+	ID         pgtype.UUID        `json:"id"`
+	EntityType string             `json:"entity_type"`
+	EntityID   pgtype.UUID        `json:"entity_id"`
+	Action     string             `json:"action"`
+	Changes    []byte             `json:"changes"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UserID     pgtype.UUID        `json:"user_id"`
 }
 
 type Branch struct {
-	ID             uuid.UUID      `json:"id"`
-	Name           string         `json:"name"`
-	Address        sql.NullString `json:"address"`
-	IsDefault      sql.NullBool   `json:"is_default"`
-	OrganizationID uuid.UUID      `json:"organization_id"`
-	CreatedAt      sql.NullTime   `json:"created_at"`
+	ID             pgtype.UUID        `json:"id"`
+	Name           string             `json:"name"`
+	Address        pgtype.Text        `json:"address"`
+	IsDefault      pgtype.Bool        `json:"is_default"`
+	OrganizationID pgtype.UUID        `json:"organization_id"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 }
 
 type Category struct {
-	ID          uuid.UUID      `json:"id"`
-	ParentID    uuid.NullUUID  `json:"parent_id"`
-	Name        string         `json:"name"`
-	BranchID    uuid.UUID      `json:"branch_id"`
-	Description sql.NullString `json:"description"`
-	CreatedAt   sql.NullTime   `json:"created_at"`
+	ID          pgtype.UUID        `json:"id"`
+	ParentID    pgtype.UUID        `json:"parent_id"`
+	Name        string             `json:"name"`
+	BranchID    pgtype.UUID        `json:"branch_id"`
+	Description pgtype.Text        `json:"description"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 }
 
 type Currency struct {
-	ID        uuid.UUID      `json:"id"`
-	Name      string         `json:"name"`
-	Symbol    sql.NullString `json:"symbol"`
-	CreatedAt sql.NullTime   `json:"created_at"`
+	ID        pgtype.UUID        `json:"id"`
+	Name      string             `json:"name"`
+	Symbol    pgtype.Text        `json:"symbol"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type Customer struct {
-	ID             uuid.UUID             `json:"id"`
-	Name           string                `json:"name"`
-	Email          sql.NullString        `json:"email"`
-	Phone          sql.NullString        `json:"phone"`
-	BillingAddress pqtype.NullRawMessage `json:"billing_address"`
-	CreatedAt      sql.NullTime          `json:"created_at"`
+	ID             pgtype.UUID        `json:"id"`
+	Name           string             `json:"name"`
+	Email          pgtype.Text        `json:"email"`
+	Phone          pgtype.Text        `json:"phone"`
+	BillingAddress []byte             `json:"billing_address"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 }
 
 type Inventory struct {
-	ID          uuid.UUID      `json:"id"`
-	VersionID   uuid.UUID      `json:"version_id"`
-	BranchID    uuid.UUID      `json:"branch_id"`
-	Quantity    sql.NullInt32  `json:"quantity"`
-	UnitCost    sql.NullString `json:"unit_cost"`
-	LastCounted sql.NullTime   `json:"last_counted"`
+	ID          pgtype.UUID        `json:"id"`
+	VersionID   pgtype.UUID        `json:"version_id"`
+	BranchID    pgtype.UUID        `json:"branch_id"`
+	Quantity    pgtype.Int4        `json:"quantity"`
+	UnitCost    pgtype.Numeric     `json:"unit_cost"`
+	LastCounted pgtype.Timestamptz `json:"last_counted"`
 }
 
 type Invoice struct {
-	ID            uuid.UUID             `json:"id"`
-	CustomerID    uuid.NullUUID         `json:"customer_id"`
-	InvoiceNumber string                `json:"invoice_number"`
-	Subtotal      string                `json:"subtotal"`
-	Discount      string                `json:"discount"`
-	Total         string                `json:"total"`
-	Status        string                `json:"status"`
-	CreatedBy     uuid.NullUUID         `json:"created_by"`
-	CreatedAt     sql.NullTime          `json:"created_at"`
-	CurrencyID    uuid.NullUUID         `json:"currency_id"`
-	DueDate       sql.NullTime          `json:"due_date"`
-	Reminders     pqtype.NullRawMessage `json:"reminders"`
-	Metadata      pqtype.NullRawMessage `json:"metadata"`
-	AmountPaid    string                `json:"amount_paid"`
-	BalanceDue    sql.NullString        `json:"balance_due"`
+	ID            pgtype.UUID        `json:"id"`
+	CustomerID    pgtype.UUID        `json:"customer_id"`
+	InvoiceNumber string             `json:"invoice_number"`
+	Subtotal      pgtype.Numeric     `json:"subtotal"`
+	Discount      pgtype.Numeric     `json:"discount"`
+	Total         pgtype.Numeric     `json:"total"`
+	Status        string             `json:"status"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	CurrencyID    pgtype.UUID        `json:"currency_id"`
+	DueDate       pgtype.Timestamptz `json:"due_date"`
+	Reminders     []byte             `json:"reminders"`
+	Metadata      []byte             `json:"metadata"`
+	AmountPaid    pgtype.Numeric     `json:"amount_paid"`
+	BalanceDue    pgtype.Numeric     `json:"balance_due"`
 }
 
 type InvoiceItem struct {
-	ID        uuid.UUID             `json:"id"`
-	InvoiceID uuid.UUID             `json:"invoice_id"`
-	VersionID uuid.UUID             `json:"version_id"`
-	Quantity  int32                 `json:"quantity"`
-	UnitPrice string                `json:"unit_price"`
-	Subtotal  string                `json:"subtotal"`
-	Metadata  pqtype.NullRawMessage `json:"metadata"`
+	ID        pgtype.UUID    `json:"id"`
+	InvoiceID pgtype.UUID    `json:"invoice_id"`
+	VersionID pgtype.UUID    `json:"version_id"`
+	Quantity  int32          `json:"quantity"`
+	UnitPrice pgtype.Numeric `json:"unit_price"`
+	Subtotal  pgtype.Numeric `json:"subtotal"`
+	Metadata  []byte         `json:"metadata"`
 }
 
 type Organization struct {
-	ID        uuid.UUID    `json:"id"`
-	Name      string       `json:"name"`
-	Email     string       `json:"email"`
-	Active    sql.NullBool `json:"active"`
-	CreatedAt sql.NullTime `json:"created_at"`
+	ID        pgtype.UUID        `json:"id"`
+	Name      string             `json:"name"`
+	Email     string             `json:"email"`
+	Active    pgtype.Bool        `json:"active"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type Payment struct {
-	ID            uuid.UUID             `json:"id"`
-	InvoiceID     uuid.NullUUID         `json:"invoice_id"`
-	PaymentMethod sql.NullString        `json:"payment_method"`
-	PaymentAmount string                `json:"payment_amount"`
-	PaymentRef    sql.NullString        `json:"payment_ref"`
-	PaymentDate   time.Time             `json:"payment_date"`
-	Metadata      pqtype.NullRawMessage `json:"metadata"`
-	CreatedAt     time.Time             `json:"created_at"`
-	CreatedBy     uuid.UUID             `json:"created_by"`
+	ID            pgtype.UUID        `json:"id"`
+	InvoiceID     pgtype.UUID        `json:"invoice_id"`
+	PaymentMethod pgtype.Text        `json:"payment_method"`
+	PaymentAmount pgtype.Numeric     `json:"payment_amount"`
+	PaymentRef    pgtype.Text        `json:"payment_ref"`
+	PaymentDate   pgtype.Timestamptz `json:"payment_date"`
+	Metadata      []byte             `json:"metadata"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
 }
 
 type PaymentInfo struct {
-	ID          uuid.UUID      `json:"id"`
-	UserID      uuid.NullUUID  `json:"user_id"`
-	AccountNo   sql.NullString `json:"account_no"`
-	RoutingNo   sql.NullString `json:"routing_no"`
-	AccountName sql.NullString `json:"account_name"`
-	BankName    sql.NullString `json:"bank_name"`
-	CreatedAt   sql.NullTime   `json:"created_at"`
+	ID          pgtype.UUID        `json:"id"`
+	UserID      pgtype.UUID        `json:"user_id"`
+	AccountNo   string             `json:"account_no"`
+	RoutingNo   pgtype.Text        `json:"routing_no"`
+	AccountName string             `json:"account_name"`
+	BankName    string             `json:"bank_name"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 }
 
 type Product struct {
-	ID                  uuid.UUID             `json:"id"`
-	CategoryID          uuid.NullUUID         `json:"category_id"`
-	BranchID            uuid.UUID             `json:"branch_id"`
-	Name                string                `json:"name"`
-	ProductType         string                `json:"product_type"`
-	ServicePricingModel sql.NullString        `json:"service_pricing_model"`
-	DefaultUnit         sql.NullString        `json:"default_unit"`
-	IsBillable          sql.NullBool          `json:"is_billable"`
-	Sku                 sql.NullString        `json:"sku"`
-	Description         sql.NullString        `json:"description"`
-	BasePrice           sql.NullString        `json:"base_price"`
-	CustomFields        pqtype.NullRawMessage `json:"custom_fields"`
-	CreatedAt           sql.NullTime          `json:"created_at"`
-	UpdatedAt           sql.NullTime          `json:"updated_at"`
+	ID                  pgtype.UUID        `json:"id"`
+	CategoryID          pgtype.UUID        `json:"category_id"`
+	BranchID            pgtype.UUID        `json:"branch_id"`
+	Name                string             `json:"name"`
+	ProductType         string             `json:"product_type"`
+	ServicePricingModel pgtype.Text        `json:"service_pricing_model"`
+	DefaultUnit         pgtype.Text        `json:"default_unit"`
+	IsBillable          pgtype.Bool        `json:"is_billable"`
+	Sku                 string             `json:"sku"`
+	Description         pgtype.Text        `json:"description"`
+	BasePrice           pgtype.Numeric     `json:"base_price"`
+	CustomFields        []byte             `json:"custom_fields"`
+	CreatedAt           pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
 }
 
 type ProductVersion struct {
-	ID              uuid.UUID             `json:"id"`
-	ProductID       uuid.UUID             `json:"product_id"`
-	BranchID        uuid.UUID             `json:"branch_id"`
-	Sku             sql.NullString        `json:"sku"`
-	Name            string                `json:"name"`
-	PriceAdjustment sql.NullString        `json:"price_adjustment"`
-	Attributes      pqtype.NullRawMessage `json:"attributes"`
-	StockQuantity   sql.NullInt32         `json:"stock_quantity"`
-	ReorderPoint    sql.NullInt32         `json:"reorder_point"`
-	CreatedAt       sql.NullTime          `json:"created_at"`
+	ID              pgtype.UUID        `json:"id"`
+	ProductID       pgtype.UUID        `json:"product_id"`
+	BranchID        pgtype.UUID        `json:"branch_id"`
+	Name            string             `json:"name"`
+	PriceAdjustment pgtype.Numeric     `json:"price_adjustment"`
+	Attributes      []byte             `json:"attributes"`
+	StockQuantity   pgtype.Int4        `json:"stock_quantity"`
+	ReorderPoint    pgtype.Int4        `json:"reorder_point"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
 }
 
 type User struct {
-	ID        uuid.UUID      `json:"id"`
-	Name      string         `json:"name"`
-	Email     string         `json:"email"`
-	Address   sql.NullString `json:"address"`
-	BranchID  uuid.UUID      `json:"branch_id"`
-	CreatedAt sql.NullTime   `json:"created_at"`
+	ID        pgtype.UUID        `json:"id"`
+	Name      string             `json:"name"`
+	Email     string             `json:"email"`
+	Address   pgtype.Text        `json:"address"`
+	BranchID  pgtype.UUID        `json:"branch_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }

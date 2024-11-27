@@ -8,7 +8,7 @@ package db
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createInvoiceItem = `-- name: CreateInvoiceItem :one
@@ -21,15 +21,15 @@ INSERT INTO invoice_items (
 `
 
 type CreateInvoiceItemParams struct {
-	InvoiceID uuid.UUID `json:"invoice_id"`
-	VersionID uuid.UUID `json:"version_id"`
-	Quantity  int32     `json:"quantity"`
-	UnitPrice string    `json:"unit_price"`
-	Subtotal  string    `json:"subtotal"`
+	InvoiceID pgtype.UUID    `json:"invoice_id"`
+	VersionID pgtype.UUID    `json:"version_id"`
+	Quantity  int32          `json:"quantity"`
+	UnitPrice pgtype.Numeric `json:"unit_price"`
+	Subtotal  pgtype.Numeric `json:"subtotal"`
 }
 
 func (q *Queries) CreateInvoiceItem(ctx context.Context, arg CreateInvoiceItemParams) (InvoiceItem, error) {
-	row := q.db.QueryRowContext(ctx, createInvoiceItem,
+	row := q.db.QueryRow(ctx, createInvoiceItem,
 		arg.InvoiceID,
 		arg.VersionID,
 		arg.Quantity,
@@ -49,12 +49,20 @@ func (q *Queries) CreateInvoiceItem(ctx context.Context, arg CreateInvoiceItemPa
 	return i, err
 }
 
+type CreateMultipleInvoiceItemsParams struct {
+	InvoiceID pgtype.UUID    `json:"invoice_id"`
+	VersionID pgtype.UUID    `json:"version_id"`
+	Quantity  int32          `json:"quantity"`
+	UnitPrice pgtype.Numeric `json:"unit_price"`
+	Subtotal  pgtype.Numeric `json:"subtotal"`
+}
+
 const getInvoiceItemsByInvoiceID = `-- name: GetInvoiceItemsByInvoiceID :many
 SELECT id, invoice_id, version_id, quantity, unit_price, subtotal, metadata FROM invoice_items WHERE invoice_id = $1
 `
 
-func (q *Queries) GetInvoiceItemsByInvoiceID(ctx context.Context, invoiceID uuid.UUID) ([]InvoiceItem, error) {
-	rows, err := q.db.QueryContext(ctx, getInvoiceItemsByInvoiceID, invoiceID)
+func (q *Queries) GetInvoiceItemsByInvoiceID(ctx context.Context, invoiceID pgtype.UUID) ([]InvoiceItem, error) {
+	rows, err := q.db.Query(ctx, getInvoiceItemsByInvoiceID, invoiceID)
 	if err != nil {
 		return nil, err
 	}
@@ -75,9 +83,6 @@ func (q *Queries) GetInvoiceItemsByInvoiceID(ctx context.Context, invoiceID uuid
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -96,15 +101,15 @@ RETURNING id, invoice_id, version_id, quantity, unit_price, subtotal, metadata
 `
 
 type UpdateInvoiceItemParams struct {
-	ID        uuid.UUID `json:"id"`
-	VersionID uuid.UUID `json:"version_id"`
-	Quantity  int32     `json:"quantity"`
-	UnitPrice string    `json:"unit_price"`
-	Subtotal  string    `json:"subtotal"`
+	ID        pgtype.UUID    `json:"id"`
+	VersionID pgtype.UUID    `json:"version_id"`
+	Quantity  int32          `json:"quantity"`
+	UnitPrice pgtype.Numeric `json:"unit_price"`
+	Subtotal  pgtype.Numeric `json:"subtotal"`
 }
 
 func (q *Queries) UpdateInvoiceItem(ctx context.Context, arg UpdateInvoiceItemParams) (InvoiceItem, error) {
-	row := q.db.QueryRowContext(ctx, updateInvoiceItem,
+	row := q.db.QueryRow(ctx, updateInvoiceItem,
 		arg.ID,
 		arg.VersionID,
 		arg.Quantity,

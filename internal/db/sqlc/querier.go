@@ -6,9 +6,8 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
@@ -21,6 +20,7 @@ type Querier interface {
 	CreateInventoryRecord(ctx context.Context, arg CreateInventoryRecordParams) (Inventory, error)
 	CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (Invoice, error)
 	CreateInvoiceItem(ctx context.Context, arg CreateInvoiceItemParams) (InvoiceItem, error)
+	CreateMultipleInvoiceItems(ctx context.Context, arg []CreateMultipleInvoiceItemsParams) (int64, error)
 	CreateOrganization(ctx context.Context, arg CreateOrganizationParams) (Organization, error)
 	CreatePayment(ctx context.Context, arg CreatePaymentParams) (Payment, error)
 	// Insert payment info
@@ -28,32 +28,32 @@ type Querier interface {
 	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
 	CreateProductVersion(ctx context.Context, arg CreateProductVersionParams) (ProductVersion, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
-	DeleteCustomerByID(ctx context.Context, id uuid.UUID) error
-	GetActivityLogByEntityID(ctx context.Context, entityID uuid.UUID) ([]ActivityLog, error)
-	GetActivityLogsByUserID(ctx context.Context, userID uuid.NullUUID) ([]ActivityLog, error)
-	GetBranchByID(ctx context.Context, id uuid.UUID) (Branch, error)
-	GetCategoriesByBranchID(ctx context.Context, branchID uuid.UUID) ([]Category, error)
-	GetCurrencyByID(ctx context.Context, id uuid.UUID) (Currency, error)
-	GetCustomerByEmail(ctx context.Context, email sql.NullString) (Customer, error)
+	DeleteCustomerByID(ctx context.Context, id pgtype.UUID) error
+	GetActivityLogByEntityID(ctx context.Context, entityID pgtype.UUID) ([]ActivityLog, error)
+	GetActivityLogsByUserID(ctx context.Context, userID pgtype.UUID) ([]ActivityLog, error)
+	GetBranchByID(ctx context.Context, id pgtype.UUID) (Branch, error)
+	GetCategoriesByBranchID(ctx context.Context, branchID pgtype.UUID) ([]Category, error)
+	GetCurrencyByID(ctx context.Context, id pgtype.UUID) (Currency, error)
+	GetCustomerByEmail(ctx context.Context, email pgtype.Text) (Customer, error)
 	// Get inventory by branch ID
-	GetInventoryByBranchID(ctx context.Context, branchID uuid.UUID) ([]Inventory, error)
+	GetInventoryByBranchID(ctx context.Context, branchID pgtype.UUID) ([]Inventory, error)
 	// Get inventory by ID
-	GetInventoryByID(ctx context.Context, id uuid.UUID) (Inventory, error)
+	GetInventoryByID(ctx context.Context, id pgtype.UUID) (Inventory, error)
 	// Get inventory by version ID
-	GetInventoryByVersionID(ctx context.Context, versionID uuid.UUID) (Inventory, error)
-	GetInvoiceByID(ctx context.Context, id uuid.UUID) (Invoice, error)
-	GetInvoiceItemsByInvoiceID(ctx context.Context, invoiceID uuid.UUID) ([]InvoiceItem, error)
-	GetInvoicesCreatedByUser(ctx context.Context, createdBy uuid.NullUUID) ([]Invoice, error)
-	GetOrganizationByID(ctx context.Context, id uuid.UUID) (User, error)
+	GetInventoryByVersionID(ctx context.Context, versionID pgtype.UUID) (Inventory, error)
+	GetInvoiceByID(ctx context.Context, id pgtype.UUID) (Invoice, error)
+	GetInvoiceItemsByInvoiceID(ctx context.Context, invoiceID pgtype.UUID) ([]InvoiceItem, error)
+	GetInvoicesCreatedByUser(ctx context.Context, createdBy pgtype.UUID) ([]Invoice, error)
+	GetOrganizationByID(ctx context.Context, id pgtype.UUID) (Organization, error)
 	// Get payment by ID
-	GetPaymentByID(ctx context.Context, id uuid.UUID) (Payment, error)
-	GetPaymentInfoByUserID(ctx context.Context, userID uuid.NullUUID) (PaymentInfo, error)
+	GetPaymentByID(ctx context.Context, id pgtype.UUID) (Payment, error)
+	GetPaymentInfoByUserID(ctx context.Context, userID pgtype.UUID) (PaymentInfo, error)
 	// Get payments by invoice ID
-	GetPaymentsByInvoiceID(ctx context.Context, invoiceID uuid.NullUUID) ([]Payment, error)
-	GetProductVersionsByProductID(ctx context.Context, productID uuid.UUID) ([]ProductVersion, error)
-	GetProductsByBranchID(ctx context.Context, branchID uuid.UUID) (Product, error)
-	GetProductsByID(ctx context.Context, id uuid.UUID) (Product, error)
-	GetUserById(ctx context.Context, id uuid.UUID) (User, error)
+	GetPaymentsByInvoiceID(ctx context.Context, invoiceID pgtype.UUID) ([]Payment, error)
+	GetProductVersionsByProductID(ctx context.Context, productID pgtype.UUID) ([]ProductVersion, error)
+	GetProductsByBranchID(ctx context.Context, branchID pgtype.UUID) (Product, error)
+	GetProductsByID(ctx context.Context, id pgtype.UUID) (Product, error)
+	GetUserById(ctx context.Context, id pgtype.UUID) (User, error)
 	// Update inventory
 	UpdateInventory(ctx context.Context, arg UpdateInventoryParams) (Inventory, error)
 	UpdateInvoice(ctx context.Context, arg UpdateInvoiceParams) (Invoice, error)
