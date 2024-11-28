@@ -94,7 +94,7 @@ func TestCreateInvoice(t *testing.T) {
 		BranchID: branch.ID,
 		Name: "nokia",
 		ProductType: "phyisical",
-		Sku: "NK-",
+		Sku: "NK-457",
 	})
 
 	require.NoError(t,err)
@@ -138,4 +138,14 @@ func TestCreateInvoice(t *testing.T) {
 	require.NoError(t,err)
 	require.NotEmpty(t, currency)
 
+	customer, err:= testQueries.CreateCustomer(c, db.CreateCustomerParams{
+		Name: "V",
+		Email: pgtype.Text{
+			String: "t@gmail.com",
+
+		},
+	})
+
+	require.NoError(t,err)
+	require.NotEmpty(t, customer)
 }

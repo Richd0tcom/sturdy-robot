@@ -7,6 +7,10 @@ RETURNING *;
 SELECT * FROM customers 
 WHERE email = $1 LIMIT 1;
 
+-- name: GetCustomerById :one
+SELECT * FROM customers 
+WHERE id = $1 LIMIT 1;
+
 -- name: DeleteCustomerByID :exec
 DELETE FROM customers
 WHERE id = $1;

@@ -3,9 +3,9 @@ module github.com/Richd0tcom/sturdy-robot
 go 1.23.2
 
 require (
+	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/joho/godotenv v1.5.1
-	github.com/lib/pq v1.10.9
 	github.com/shopspring/decimal v1.4.0
 	github.com/stretchr/testify v1.9.0
 )

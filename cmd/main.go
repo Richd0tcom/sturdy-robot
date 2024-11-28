@@ -18,7 +18,7 @@ import (
 func main() {
 
 	
-	config, err:= config.LoadConfig(".")
+	config, err:= config.LoadConfig(".env")
 	if err != nil {
 		log.Fatal("could not read configs ", err)
 	}

@@ -29,6 +29,7 @@ func (r *iteratorForCreateMultipleInvoiceItems) Next() bool {
 
 func (r iteratorForCreateMultipleInvoiceItems) Values() ([]interface{}, error) {
 	return []interface{}{
+		r.rows[0].ID,
 		r.rows[0].InvoiceID,
 		r.rows[0].VersionID,
 		r.rows[0].Quantity,
@@ -42,5 +43,5 @@ func (r iteratorForCreateMultipleInvoiceItems) Err() error {
 }
 
 func (q *Queries) CreateMultipleInvoiceItems(ctx context.Context, arg []CreateMultipleInvoiceItemsParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"invoice_items"}, []string{"invoice_id", "version_id", "quantity", "unit_price", "subtotal"}, &iteratorForCreateMultipleInvoiceItems{rows: arg})
+	return q.db.CopyFrom(ctx, []string{"invoice_items"}, []string{"id", "invoice_id", "version_id", "quantity", "unit_price", "subtotal"}, &iteratorForCreateMultipleInvoiceItems{rows: arg})
 }

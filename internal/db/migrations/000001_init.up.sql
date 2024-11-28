@@ -136,7 +136,7 @@ CREATE TABLE invoices (
     customer_id UUID REFERENCES customers(id),
     invoice_number VARCHAR(50) UNIQUE NOT NULL,
     subtotal DECIMAL(15,2) NOT NULL DEFAULT 0,
-    discount DECIMAL(15,2) NOT NULL DEFAULT 0,
+    discount DECIMAL(15,2) DEFAULT 0,
     total DECIMAL(15,2) NOT NULL DEFAULT 0,
     status VARCHAR(50) NOT NULL DEFAULT 'draft',
     created_by UUID REFERENCES users(id),
@@ -176,8 +176,8 @@ CREATE TABLE invoice_items (
     subtotal DECIMAL(15,2) NOT NULL,
     metadata JSONB,
     CONSTRAINT positive_quantity CHECK (quantity > 0),
-    CONSTRAINT positive_price CHECK (unit_price >= 0),
-    CONSTRAINT valid_subtotal CHECK (subtotal = quantity * unit_price)
+    CONSTRAINT positive_price CHECK (unit_price >= 0)
+    -- CONSTRAINT valid_subtotal CHECK (subtotal = quantity * unit_price)
 );
 
 -- Activity logs table

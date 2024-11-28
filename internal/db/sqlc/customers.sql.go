@@ -71,3 +71,22 @@ func (q *Queries) GetCustomerByEmail(ctx context.Context, email pgtype.Text) (Cu
 	)
 	return i, err
 }
+
+const getCustomerById = `-- name: GetCustomerById :one
+SELECT id, name, email, phone, billing_address, created_at FROM customers 
+WHERE id = $1 LIMIT 1
+`
+
+func (q *Queries) GetCustomerById(ctx context.Context, id pgtype.UUID) (Customer, error) {
+	row := q.db.QueryRow(ctx, getCustomerById, id)
+	var i Customer
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Phone,
+		&i.BillingAddress,
+		&i.CreatedAt,
+	)
+	return i, err
+}

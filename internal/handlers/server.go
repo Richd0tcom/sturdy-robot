@@ -17,6 +17,7 @@ func NewServer(store db.Store) *Server {
 	engine:= gin.Default()
 	
 	server:= &Server{
+		store: store,
 		serverRouter: engine,
 	}
 

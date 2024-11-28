@@ -8,10 +8,11 @@ INSERT INTO invoice_items (
 
 -- name: CreateMultipleInvoiceItems :copyfrom
 INSERT INTO invoice_items (
+    id,
     invoice_id, version_id, quantity, 
     unit_price, subtotal
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4, $5, $6
 );
 
 -- name: GetInvoiceItemsByInvoiceID :many

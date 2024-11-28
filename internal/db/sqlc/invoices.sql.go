@@ -15,10 +15,10 @@ const createInvoice = `-- name: CreateInvoice :one
 INSERT INTO invoices (
     id, customer_id, invoice_number, subtotal, 
     discount, total, status, created_by, 
-    currency_id, due_date
+    currency_id, due_date, reminders
 ) VALUES (
     uuid_generate_v4(), $1, $2, $3, $4, $5, 
-    $6, $7, $8, $9
+    $6, $7, $8, $9, $10
 ) RETURNING id, customer_id, invoice_number, subtotal, discount, total, status, created_by, created_at, currency_id, due_date, reminders, metadata, amount_paid, balance_due
 `
 
@@ -32,6 +32,7 @@ type CreateInvoiceParams struct {
 	CreatedBy     pgtype.UUID        `json:"created_by"`
 	CurrencyID    pgtype.UUID        `json:"currency_id"`
 	DueDate       pgtype.Timestamptz `json:"due_date"`
+	Reminders     []byte             `json:"reminders"`
 }
 
 func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (Invoice, error) {
@@ -45,6 +46,7 @@ func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (I
 		arg.CreatedBy,
 		arg.CurrencyID,
 		arg.DueDate,
+		arg.Reminders,
 	)
 	var i Invoice
 	err := row.Scan(
@@ -134,6 +136,37 @@ func (q *Queries) GetInvoicesCreatedByUser(ctx context.Context, createdBy pgtype
 	return items, nil
 }
 
+const getTotalsByStatuses = `-- name: GetTotalsByStatuses :one
+SELECT
+    SUM(CASE WHEN status = 'paid' THEN total ELSE 0 END) AS paid_total,
+    SUM(CASE WHEN status = 'unpaid' THEN total ELSE 0 END) AS unpaid_total,
+    SUM(CASE WHEN status = 'overdue' THEN total ELSE 0 END) AS overdue_total,
+    SUM(CASE WHEN status = 'draft' THEN total ELSE 0 END) AS draft_total
+FROM
+    invoices
+WHERE
+    created_by = $1
+`
+
+type GetTotalsByStatusesRow struct {
+	PaidTotal    int64 `json:"paid_total"`
+	UnpaidTotal  int64 `json:"unpaid_total"`
+	OverdueTotal int64 `json:"overdue_total"`
+	DraftTotal   int64 `json:"draft_total"`
+}
+
+func (q *Queries) GetTotalsByStatuses(ctx context.Context, createdBy pgtype.UUID) (GetTotalsByStatusesRow, error) {
+	row := q.db.QueryRow(ctx, getTotalsByStatuses, createdBy)
+	var i GetTotalsByStatusesRow
+	err := row.Scan(
+		&i.PaidTotal,
+		&i.UnpaidTotal,
+		&i.OverdueTotal,
+		&i.DraftTotal,
+	)
+	return i, err
+}
+
 const updateInvoice = `-- name: UpdateInvoice :one
 UPDATE invoices 
 SET 
@@ -142,7 +175,8 @@ SET
     discount = $4, 
     total = $5, 
     status = $6, 
-    amount_paid = $7
+    amount_paid = $7,
+    reminders = $8
 WHERE id = $1 
 RETURNING id, customer_id, invoice_number, subtotal, discount, total, status, created_by, created_at, currency_id, due_date, reminders, metadata, amount_paid, balance_due
 `
@@ -155,6 +189,7 @@ type UpdateInvoiceParams struct {
 	Total         pgtype.Numeric `json:"total"`
 	Status        string         `json:"status"`
 	AmountPaid    pgtype.Numeric `json:"amount_paid"`
+	Reminders     []byte         `json:"reminders"`
 }
 
 func (q *Queries) UpdateInvoice(ctx context.Context, arg UpdateInvoiceParams) (Invoice, error) {
@@ -166,6 +201,7 @@ func (q *Queries) UpdateInvoice(ctx context.Context, arg UpdateInvoiceParams) (I
 		arg.Total,
 		arg.Status,
 		arg.AmountPaid,
+		arg.Reminders,
 	)
 	var i Invoice
 	err := row.Scan(

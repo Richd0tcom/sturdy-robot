@@ -35,6 +35,7 @@ type Querier interface {
 	GetCategoriesByBranchID(ctx context.Context, branchID pgtype.UUID) ([]Category, error)
 	GetCurrencyByID(ctx context.Context, id pgtype.UUID) (Currency, error)
 	GetCustomerByEmail(ctx context.Context, email pgtype.Text) (Customer, error)
+	GetCustomerById(ctx context.Context, id pgtype.UUID) (Customer, error)
 	// Get inventory by branch ID
 	GetInventoryByBranchID(ctx context.Context, branchID pgtype.UUID) ([]Inventory, error)
 	// Get inventory by ID
@@ -53,6 +54,7 @@ type Querier interface {
 	GetProductVersionsByProductID(ctx context.Context, productID pgtype.UUID) ([]ProductVersion, error)
 	GetProductsByBranchID(ctx context.Context, branchID pgtype.UUID) (Product, error)
 	GetProductsByID(ctx context.Context, id pgtype.UUID) (Product, error)
+	GetTotalsByStatuses(ctx context.Context, createdBy pgtype.UUID) (GetTotalsByStatusesRow, error)
 	GetUserById(ctx context.Context, id pgtype.UUID) (User, error)
 	// Update inventory
 	UpdateInventory(ctx context.Context, arg UpdateInventoryParams) (Inventory, error)

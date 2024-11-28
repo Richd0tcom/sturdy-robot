@@ -50,6 +50,7 @@ func (q *Queries) CreateInvoiceItem(ctx context.Context, arg CreateInvoiceItemPa
 }
 
 type CreateMultipleInvoiceItemsParams struct {
+	ID        pgtype.UUID    `json:"id"`
 	InvoiceID pgtype.UUID    `json:"invoice_id"`
 	VersionID pgtype.UUID    `json:"version_id"`
 	Quantity  int32          `json:"quantity"`

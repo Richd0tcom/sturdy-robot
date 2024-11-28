@@ -4,12 +4,15 @@ import (
 	"math/rand"
 	"strings"
 	"time"
+
+	"github.com/gofrs/uuid"
 )
 
 // This file generates random test data for testing
 
 
 const alphabet = "abcdefghijklmnopqrstuvwxyz"
+const numphabet = "abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 //initialises the seed of the random packeage to make sure that value are indeed random
 func init(){
@@ -22,7 +25,7 @@ func RandomInt(min, max int64) int64 {
 }
 
 // RandomString generates a random string of length n
-func RandomString(n int) string {
+func RandomString(n int ) string {
 	var sb strings.Builder
 	k := len(alphabet)
 
@@ -49,4 +52,21 @@ func RandomCurrency() string {
 	currencies := []string{"USD", "EUR", "CAD"}
 	n := len(currencies)
 	return currencies[rand.Intn(n)]
+}
+
+func RandomInvoiceNumber() string {
+	var sb strings.Builder
+	k := len(numphabet)
+
+	for i := 0; i < 6; i++ {
+		c := numphabet[rand.Intn(k)]
+		sb.WriteByte(c)
+	}
+
+	return sb.String()
+}
+
+func NewRandomUUID() uuid.UUID {
+	uid, _:= uuid.NewV4()
+	return uid
 }
