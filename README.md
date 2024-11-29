@@ -14,28 +14,18 @@ A robust Go-based invoice management application with advanced database and API 
 
 ## Project Architecture
 
-## Database Design
+### Database Design
 ![Nume](https://github.com/user-attachments/assets/421a4038-83a0-4829-a7f8-1573c2e98301)
 
 
 
-Normalized relational schema
+- Normalized relational schema
+- Supports multiple currencies
+- Designed for scalability and data integrity
 
-Supports multiple currencies
-Designed for scalability and data integrity
-
-Database Migrations
-Location: migrations/
-
-Versioned SQL migration files
-Supports forward and rollback migrations
-
-Query Generation
-Using SQLC for type-safe database interactions:
-
-Automatically generates Go structs
-Compile-time query validation
-Reduces manual SQL boilerplate
+- Versioned SQL migration files
+  Supports forward and rollback migrations
+- Compile-time query validation
 
 Key Features
 
@@ -51,8 +41,8 @@ Prerequisites
 
 - Go 1.21+
 - PostgreSQL 13+
-- SQLC
 - golang-migrate
+- docker 
 
 
 Environment Configuration
@@ -61,41 +51,50 @@ Copy .env.example to .env and populate
 
 Configure database connection
 
-Run migrations (with golang-migrate installed already)
+A `makefile` has been provided to make (pun intended) things easier to setup. 
+Feel free to replace the credentials in the make file to suit your needs
 
-Database Migration
-```bash
+To create a new postgres container with credentials
+```shell
+    make postgres
+```
+
+
+To Create the database
+```shell
+    make createdb
+```
+
+To run UP migrations
+```shell
     make migrateup
 ```
-migrate -path migrations -database "postgresql://user:pass@localhost/dbname" up
-Generate SQLC Queries
-bashCopysqlc generate
+N/B the above step requires you to have golang-migrate installed
+
+Populate your db with testdata
+```shell
+    make test
+```
 Run Application
-bashCopygo run cmd/api/main.go
+```shell
+    cd cmd && go run main.go
+```
+
+### Testing
+
+- Integration tests for database interactions (the tests also double as a way to quickly insert data into the DB)
+- API endpoint testing
 
 
-Development Workflow
-
-Write SQL queries in db/query/
-Generate structs with SQLC
-Implement service logic
-Create API handlers
-
-Testing
-
-
-Integration tests for database interactions (the tests also double as a way toquickly insert data into the DB)
-API endpoint testing
-
-
-Performance Considerations
+### Performance Considerations
 
 Connection pooling with pgx
 Prepared statements
 Efficient query design
 
-Security
-
-Input validation
-Prepared statements prevent SQL injection
-JWT authentication (recommended)
+### TODO
+- pdf generation
+- cron jobs for reminders
+- caching for frequently fetched data
+- extensive data validation
+- payment confirmation

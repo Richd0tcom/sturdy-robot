@@ -23,9 +23,14 @@ func (s *Server) SetupInvoiceHandler() {
 	}) //helo world handlerd
 	r.POST("/", s.CreateInvoice)
 	r.PATCH("/:id", s.UpdateInvoice)
+	r.GET("/all", s.GetAllInvoices)
 	r.GET("/analytics", s.GetAnalytics)
-	r.GET("/activity", s.GetActivityLog)
+	r.POST("/reminder", s.SetReminder)
+	r.GET("payment-info", s.GetPaymentInfo)
+	r.GET("/activity", s.GetInvoiceActivityLog)
+	r.GET("/:id/items", s.GetInvoiceItems)
 	r.GET("/:id", s.GetInvoice)
+	
 
 }
 
