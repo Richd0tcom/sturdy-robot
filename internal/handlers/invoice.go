@@ -11,7 +11,7 @@ import (
 
 
 func (s *Server) SetupInvoiceHandler()  {
-	r:= s.serverRouter.Group("/")
+	r:= s.serverRouter.Group("/invoices")
 
 	r.GET("/hello", func(ctx *gin.Context) {
 		fmt.Println("dead last")
@@ -19,7 +19,12 @@ func (s *Server) SetupInvoiceHandler()  {
 			"message": "red",
 		})
 	}) //helo world handlerd
-	r.POST("/invoices", s.CreateInvoice)
+	r.POST("/", s.CreateInvoice)
+	r.PATCH("/:id", s.UpdateInvoice)
+	r.GET("/analytics", s.GetAnalytics)
+	r.GET("/activity", s.GetActivityLog) 
+	r.GET("/:id", s.GetInvoice)
+	
 }
 
 func (s *Server) CreateInvoice(ctx *gin.Context){
@@ -43,7 +48,11 @@ func (s *Server) UpdateInvoice(ctx *gin.Context) {
 
 // see analytics
 func (s *Server) GetAnalytics(ctx *gin.Context) {
-	
+	var args requests.UserID
+
+	ctx.ShouldBindJSON(&args)
+
+	service.GetAnalytics(ctx, args, s.store)
 }
 
 

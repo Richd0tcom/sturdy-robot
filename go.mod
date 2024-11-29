@@ -3,9 +3,11 @@ module github.com/Richd0tcom/sturdy-robot
 go 1.23.2
 
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/joho/godotenv v1.5.1
+	github.com/jung-kurt/gofpdf v1.16.2
 	github.com/shopspring/decimal v1.4.0
 	github.com/stretchr/testify v1.9.0
 )

@@ -2,9 +2,6 @@ package service
 
 import (
 	"context"
-	// "database/sql"
-
-	// "database/sql"
 	"log"
 	"testing"
 
@@ -24,8 +21,7 @@ var testQueries *db.Queries
 
 func init(){
 	config, err:= config.LoadConfig("../../cmd/.env")
-	// /Users/richdotcom/go/src/github.com/Richd0tcom/SafeX-Pay/.env
-	// /Users/richdotcom/go/src/github.com/Richd0tcom/SafeX-Pay/db/sqlc/main_test.go
+
 	if err != nil {
 		log.Fatal("could not read configs", err)
 	}
@@ -38,7 +34,7 @@ func init(){
 	testQueries = db.New(connPool)
 }
 
-func TestCreateInvoice(t *testing.T) {
+func TestOtherFunctions(t *testing.T) {
 
 	var c context.Context = context.Background()
 

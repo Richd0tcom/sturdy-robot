@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/shopspring/decimal"
 )
+
+//TODO: add errors form Scan() in the validdation step
 
 func DecimalToPGNumeric(d decimal.Decimal) pgtype.Numeric {
 
@@ -15,9 +18,7 @@ func DecimalToPGNumeric(d decimal.Decimal) pgtype.Numeric {
 		Exp: d.Exponent(),
 		Valid: true,
 	}
-	fmt.Println("nume: ", nume)
 	return  nume
-	
 }
 
 func ParseUUID(src any) pgtype.UUID{
@@ -27,11 +28,21 @@ func ParseUUID(src any) pgtype.UUID{
 	err:= uuid.Scan(src)
 
 	if err!= nil {
-		fmt.Println("uuid err: ", err)
 		panic(err)
 	}
 
 	return uuid
+}
+
+func PgUUIDToString(u pgtype.UUID) string {
+	var uuid uuid.UUID
+
+	err:= uuid.Scan(u.Bytes)
+	if err!= nil {
+		panic(err)
+	}
+
+	return uuid.String()
 }
 
 func ParseDate(src any) pgtype.Timestamptz {
@@ -51,4 +62,17 @@ func ParseDate(src any) pgtype.Timestamptz {
 	}
 
 	return date
+}
+
+func StringToPGText(s string) pgtype.Text {
+
+	var text pgtype.Text
+
+	err:= text.Scan(s)
+
+	if err!= nil {
+		panic(err)
+	}
+
+	return text
 }
