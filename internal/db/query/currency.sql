@@ -1,6 +1,6 @@
 -- name: CreateCurrency :one
-INSERT INTO currency (id, name, symbol) 
-VALUES (uuid_generate_v4(), $1, $2) 
+INSERT INTO currency (id, name, symbol, code) 
+VALUES (uuid_generate_v4(), $1, $2, $3) 
 RETURNING *;
 
 -- name: GetCurrencyByID :one

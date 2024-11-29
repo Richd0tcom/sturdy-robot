@@ -28,12 +28,8 @@ type InvoiceResponse struct {
     Items []db.InvoiceItem
 }
 
-type UserID struct {
-    ID string `uri:"id" binding:"required,uuid"`
-} 
-
 type InvoiceID struct {
-    ID string `uri:"id" binding:"required,uuid"`
+    ID string `uri:"invoice_id" binding:"required,uuid"`
 }
 
 type UpdateReminders struct {

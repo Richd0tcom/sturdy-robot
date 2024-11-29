@@ -36,6 +36,7 @@ type Querier interface {
 	GetCurrencyByID(ctx context.Context, id pgtype.UUID) (Currency, error)
 	GetCustomerByEmail(ctx context.Context, email pgtype.Text) (Customer, error)
 	GetCustomerById(ctx context.Context, id pgtype.UUID) (Customer, error)
+	GetCustomersByBranch(ctx context.Context, branchID pgtype.UUID) ([]Customer, error)
 	// Get inventory by branch ID
 	GetInventoryByBranchID(ctx context.Context, branchID pgtype.UUID) ([]Inventory, error)
 	// Get inventory by ID

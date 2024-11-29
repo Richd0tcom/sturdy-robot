@@ -84,6 +84,7 @@ type Category struct {
 type Currency struct {
 	ID        pgtype.UUID        `json:"id"`
 	Name      string             `json:"name"`
+	Code      string             `json:"code"`
 	Symbol    pgtype.Text        `json:"symbol"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
@@ -95,6 +96,7 @@ type Customer struct {
 	Phone          pgtype.Text        `json:"phone"`
 	BillingAddress []byte             `json:"billing_address"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	BranchID       pgtype.UUID        `json:"branch_id"`
 }
 
 type Inventory struct {

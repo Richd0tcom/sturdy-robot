@@ -12,9 +12,9 @@ import (
 )
 
 const createCustomer = `-- name: CreateCustomer :one
-INSERT INTO customers (id, name, email, phone, billing_address) 
-VALUES (uuid_generate_v4(), $1, $2, $3, $4) 
-RETURNING id, name, email, phone, billing_address, created_at
+INSERT INTO customers (id, name, email, phone, billing_address, branch_id) 
+VALUES (uuid_generate_v4(), $1, $2, $3, $4, $5) 
+RETURNING id, name, email, phone, billing_address, created_at, branch_id
 `
 
 type CreateCustomerParams struct {
@@ -22,6 +22,7 @@ type CreateCustomerParams struct {
 	Email          pgtype.Text `json:"email"`
 	Phone          pgtype.Text `json:"phone"`
 	BillingAddress []byte      `json:"billing_address"`
+	BranchID       pgtype.UUID `json:"branch_id"`
 }
 
 func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) (Customer, error) {
@@ -30,6 +31,7 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 		arg.Email,
 		arg.Phone,
 		arg.BillingAddress,
+		arg.BranchID,
 	)
 	var i Customer
 	err := row.Scan(
@@ -39,6 +41,7 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 		&i.Phone,
 		&i.BillingAddress,
 		&i.CreatedAt,
+		&i.BranchID,
 	)
 	return i, err
 }
@@ -54,7 +57,7 @@ func (q *Queries) DeleteCustomerByID(ctx context.Context, id pgtype.UUID) error 
 }
 
 const getCustomerByEmail = `-- name: GetCustomerByEmail :one
-SELECT id, name, email, phone, billing_address, created_at FROM customers 
+SELECT id, name, email, phone, billing_address, created_at, branch_id FROM customers 
 WHERE email = $1 LIMIT 1
 `
 
@@ -68,12 +71,13 @@ func (q *Queries) GetCustomerByEmail(ctx context.Context, email pgtype.Text) (Cu
 		&i.Phone,
 		&i.BillingAddress,
 		&i.CreatedAt,
+		&i.BranchID,
 	)
 	return i, err
 }
 
 const getCustomerById = `-- name: GetCustomerById :one
-SELECT id, name, email, phone, billing_address, created_at FROM customers 
+SELECT id, name, email, phone, billing_address, created_at, branch_id FROM customers 
 WHERE id = $1 LIMIT 1
 `
 
@@ -87,6 +91,40 @@ func (q *Queries) GetCustomerById(ctx context.Context, id pgtype.UUID) (Customer
 		&i.Phone,
 		&i.BillingAddress,
 		&i.CreatedAt,
+		&i.BranchID,
 	)
 	return i, err
+}
+
+const getCustomersByBranch = `-- name: GetCustomersByBranch :many
+SELECT id, name, email, phone, billing_address, created_at, branch_id FROM customers 
+WHERE branch_id = $1
+`
+
+func (q *Queries) GetCustomersByBranch(ctx context.Context, branchID pgtype.UUID) ([]Customer, error) {
+	rows, err := q.db.Query(ctx, getCustomersByBranch, branchID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Customer{}
+	for rows.Next() {
+		var i Customer
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Email,
+			&i.Phone,
+			&i.BillingAddress,
+			&i.CreatedAt,
+			&i.BranchID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

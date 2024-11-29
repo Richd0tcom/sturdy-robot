@@ -117,13 +117,14 @@ CREATE TABLE customers (
     phone VARCHAR(50),
     billing_address JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT unique_customer_email UNIQUE(email)
+    branch_id UUID NOT NULL REFERENCES branches(id)
 );
 
 -- Currency table
 CREATE TABLE currency (
     id UUID PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    code VARCHAR(50) NOT NULL,
     symbol VARCHAR(50),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

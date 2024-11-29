@@ -14,7 +14,7 @@ import (
 )
 
 // create new invoice
-func CreateNewInvoice(ctx context.Context, args requests.CreateInvoiceReq, st db.Store) (requests.InvoiceResponse, error){
+func CreateNewInvoice(ctx context.Context, userID string,  args requests.CreateInvoiceReq, st db.Store) (requests.InvoiceResponse, error){
 
 	sub_total:= decimal.NewFromInt(0)
 	for _, item:= range args.InvoiceItems {
@@ -22,9 +22,11 @@ func CreateNewInvoice(ctx context.Context, args requests.CreateInvoiceReq, st db
 	}
 	rem, err:= json.Marshal(args.Reminders)
 
-	fmt.Println("s1",sub_total)
+	if err!=nil {
+		fmt.Println(err)
+		return requests.InvoiceResponse{}, err
+	}
 
-	
 	invoice, err:= st.CreateInvoice(ctx,db.CreateInvoiceParams{
 		CustomerID: utils.ParseUUID(args.CustomerID),
 		CurrencyID: utils.ParseUUID(args.CurrencyID),
@@ -34,7 +36,7 @@ func CreateNewInvoice(ctx context.Context, args requests.CreateInvoiceReq, st db
 		Total: utils.DecimalToPGNumeric(sub_total), //change to db generated
 		DueDate: utils.ParseDate(args.DueDate),
 		Reminders: rem,
-		CreatedBy: utils.ParseUUID("f27899b4-f707-41d1-bd6d-07f584c7cea4"),
+		CreatedBy: utils.ParseUUID(userID),
 	})
 
 	if err!=nil {
@@ -48,8 +50,6 @@ func CreateNewInvoice(ctx context.Context, args requests.CreateInvoiceReq, st db
 	for i, item := range args.InvoiceItems {
 		sub_total:= decimal.NewFromInt(0)
 		sub_total= sub_total.Add(decimal.NewFromInt(int64(item.Quantity)).Mul(decimal.NewFromFloat(item.UnitPrice))) 
-
-		fmt.Println("sub: ",sub_total)
 		
 		items[i] = db.CreateMultipleInvoiceItemsParams{
 			ID: utils.ParseUUID(utils.NewRandomUUID().String()),
@@ -82,8 +82,8 @@ func CreateNewInvoice(ctx context.Context, args requests.CreateInvoiceReq, st db
 
 
 // see analytics
-func GetAnalytics(ctx context.Context,args requests.UserID,  st db.Store) (db.GetTotalsByStatusesRow, error){
-	row, err:= st.GetTotalsByStatuses(ctx, utils.ParseUUID(args.ID) )
+func GetAnalytics(ctx context.Context, userID string,  st db.Store) (db.GetTotalsByStatusesRow, error){
+	row, err:= st.GetTotalsByStatuses(ctx, utils.ParseUUID(userID) )
 
 	if err != nil {
 		return db.GetTotalsByStatusesRow{}, err
@@ -95,13 +95,13 @@ func GetAnalytics(ctx context.Context,args requests.UserID,  st db.Store) (db.Ge
 // change invoice settings 
 
 //edit/set reminder
-func SetReminder(ctx context.Context, args requests.UpdateReminders) {
+func SetReminder(ctx context.Context, args requests.UpdateReminders, st db.Store) {
 	
 }
 
 //get invoice 
-func GetInvoice(ctx context.Context, args requests.InvoiceID, st db.Store ) (requests.InvoiceResponse, error){
-	inv, err:= st.GetInvoiceByID(ctx, utils.ParseUUID(args.ID))
+func GetInvoice(ctx context.Context, invoice_id string, st db.Store ) (requests.InvoiceResponse, error){
+	inv, err:= st.GetInvoiceByID(ctx, utils.ParseUUID(invoice_id))
 	if err != nil {
 		return requests.InvoiceResponse{}, err
 	}
@@ -115,7 +115,7 @@ func GetInvoice(ctx context.Context, args requests.InvoiceID, st db.Store ) (req
 		return requests.InvoiceResponse{}, err
 	}
 
-	items, err:= st.GetInvoiceItemsByInvoiceID(ctx, utils.ParseUUID(args.ID))
+	items, err:= st.GetInvoiceItemsByInvoiceID(ctx, utils.ParseUUID(invoice_id))
 	if err != nil {
 		return requests.InvoiceResponse{}, err
 	}
@@ -128,11 +128,19 @@ func GetInvoice(ctx context.Context, args requests.InvoiceID, st db.Store ) (req
 	}, nil
 }
 
+func GetAllInvoicesByUser(ctx context.Context, user_id string, st db.Store ) ([]db.Invoice, error){
+	invs, err:= st.GetInvoicesCreatedByUser(ctx, utils.ParseUUID(user_id))
+	if err != nil {
+		return []db.Invoice{}, err
+	}
+	return invs, nil
+}
+
 
 
 // get invoice items
-func GetInvoiceItems(ctx context.Context, args requests.InvoiceID, st db.Store) ([]db.InvoiceItem, error) {
-	items, err:= st.GetInvoiceItemsByInvoiceID(ctx, utils.ParseUUID(args.ID))
+func GetInvoiceItems(ctx context.Context, invoice_id string, st db.Store) ([]db.InvoiceItem, error) {
+	items, err:= st.GetInvoiceItemsByInvoiceID(ctx, utils.ParseUUID(invoice_id))
 
 	if err != nil {
 		return []db.InvoiceItem{}, err
@@ -142,8 +150,8 @@ func GetInvoiceItems(ctx context.Context, args requests.InvoiceID, st db.Store) 
 }
 
 // get payment info
-func GetPaymentInfo(ctx context.Context, args requests.UserID, st db.Store) (db.PaymentInfo, error){
-	info, err:= st.GetPaymentInfoByUserID(ctx, utils.ParseUUID(args.ID))
+func GetPaymentInfo(ctx context.Context,  userID string, st db.Store) (db.PaymentInfo, error){
+	info, err:= st.GetPaymentInfoByUserID(ctx, utils.ParseUUID(userID))
 
 	if err != nil {
 		return db.PaymentInfo{}, err
@@ -152,20 +160,10 @@ func GetPaymentInfo(ctx context.Context, args requests.UserID, st db.Store) (db.
 	return info, nil
 }
 
-// get activity log
-func GetUserActivityLog(ctx context.Context, args requests.UserID, st db.Store) ([]db.ActivityLog, error) {
-	logs, err:= st.GetActivityLogsByUserID(ctx, utils.ParseUUID(args.ID))
 
-	if err != nil {
-		return []db.ActivityLog{}, err
-	}
 
-	return logs, nil
-
-}
-
-func GetInvoiceActivityLog(ctx context.Context, args requests.InvoiceID, st db.Store) ([]db.ActivityLog, error) {
-	logs, err:= st.GetActivityLogByEntityID(ctx,  utils.ParseUUID(args.ID))
+func GetInvoiceActivityLog(ctx context.Context, args string, st db.Store) ([]db.ActivityLog, error) {
+	logs, err:= st.GetActivityLogByEntityID(ctx,  utils.ParseUUID(args))
 
 	if err != nil {
 		return []db.ActivityLog{}, err

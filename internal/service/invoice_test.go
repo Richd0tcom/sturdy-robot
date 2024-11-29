@@ -125,10 +125,11 @@ func TestOtherFunctions(t *testing.T) {
 	require.NotEmpty(t, inventory)
 
 	currency, err:= testQueries.CreateCurrency(c, db.CreateCurrencyParams{
-		Name: "USD",
+		Name: "Dollar",
 		Symbol: pgtype.Text{
 			String: "$",
 		},
+		Code: "USD",
 	})
 
 	require.NoError(t,err)
@@ -140,6 +141,10 @@ func TestOtherFunctions(t *testing.T) {
 			String: "t@gmail.com",
 
 		},
+		Phone: pgtype.Text{
+			String: "09065900578",
+		},
+		BranchID: branch.ID,
 	})
 
 	require.NoError(t,err)
