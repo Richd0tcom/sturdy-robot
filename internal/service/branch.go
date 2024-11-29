@@ -48,7 +48,7 @@ func GetCustomers(ctx context.Context, branch_id string,  st db.Store) ([]db.Cus
 }
 
 // get activity log
-func GetUserActivityLog(ctx context.Context, userID, st db.Store) ([]db.ActivityLog, error) {
+func GetUserActivityLog(ctx context.Context, userID string, st db.Store) ([]db.ActivityLog, error) {
 	logs, err:= st.GetActivityLogsByUserID(ctx, utils.ParseUUID(userID))
 
 	if err != nil {

@@ -59,5 +59,18 @@ func (s *Server) RemoveCustomer(ctx *gin.Context) {
 }
 
 func (s *Server) GetActivityLog(ctx *gin.Context) {
-	
+	claims, err := utils.ExtractTokenIDs(ctx)
+	if err != nil {
+		ctx.JSON(400, gin.H{})
+		return
+	}
+	userID := claims["user_id"].(string)
+	logs, err:= service.GetUserActivityLog(ctx, userID, s.store)
+
+	if err != nil {
+		ctx.JSON(400, gin.H{})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, logs)
 }
