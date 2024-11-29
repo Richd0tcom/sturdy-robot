@@ -59,18 +59,39 @@ type CreateMultipleInvoiceItemsParams struct {
 }
 
 const getInvoiceItemsByInvoiceID = `-- name: GetInvoiceItemsByInvoiceID :many
-SELECT id, invoice_id, version_id, quantity, unit_price, subtotal, metadata FROM invoice_items WHERE invoice_id = $1
+SELECT it.id, invoice_id, version_id, quantity, unit_price, subtotal, metadata, pv.id, product_id, branch_id, name, price_adjustment, attributes, stock_quantity, reorder_point, created_at FROM invoice_items it
+JOIN product_versions pv ON pv.id = it.version_id
+WHERE it.invoice_id = $1
 `
 
-func (q *Queries) GetInvoiceItemsByInvoiceID(ctx context.Context, invoiceID pgtype.UUID) ([]InvoiceItem, error) {
+type GetInvoiceItemsByInvoiceIDRow struct {
+	ID              pgtype.UUID        `json:"id"`
+	InvoiceID       pgtype.UUID        `json:"invoice_id"`
+	VersionID       pgtype.UUID        `json:"version_id"`
+	Quantity        int32              `json:"quantity"`
+	UnitPrice       pgtype.Numeric     `json:"unit_price"`
+	Subtotal        pgtype.Numeric     `json:"subtotal"`
+	Metadata        []byte             `json:"metadata"`
+	ID_2            pgtype.UUID        `json:"id_2"`
+	ProductID       pgtype.UUID        `json:"product_id"`
+	BranchID        pgtype.UUID        `json:"branch_id"`
+	Name            string             `json:"name"`
+	PriceAdjustment pgtype.Numeric     `json:"price_adjustment"`
+	Attributes      []byte             `json:"attributes"`
+	StockQuantity   pgtype.Int4        `json:"stock_quantity"`
+	ReorderPoint    pgtype.Int4        `json:"reorder_point"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) GetInvoiceItemsByInvoiceID(ctx context.Context, invoiceID pgtype.UUID) ([]GetInvoiceItemsByInvoiceIDRow, error) {
 	rows, err := q.db.Query(ctx, getInvoiceItemsByInvoiceID, invoiceID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []InvoiceItem{}
+	items := []GetInvoiceItemsByInvoiceIDRow{}
 	for rows.Next() {
-		var i InvoiceItem
+		var i GetInvoiceItemsByInvoiceIDRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.InvoiceID,
@@ -79,6 +100,15 @@ func (q *Queries) GetInvoiceItemsByInvoiceID(ctx context.Context, invoiceID pgty
 			&i.UnitPrice,
 			&i.Subtotal,
 			&i.Metadata,
+			&i.ID_2,
+			&i.ProductID,
+			&i.BranchID,
+			&i.Name,
+			&i.PriceAdjustment,
+			&i.Attributes,
+			&i.StockQuantity,
+			&i.ReorderPoint,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}

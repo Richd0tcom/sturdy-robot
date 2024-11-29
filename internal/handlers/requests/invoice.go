@@ -25,7 +25,7 @@ type InvoiceResponse struct {
     Invoice db.Invoice
     SenderInfo db.User `json:"sender_info"`
     CustomerInfo db.Customer `json:"customer_info"`
-    Items []db.InvoiceItem
+    Items []db.GetInvoiceItemsByInvoiceIDRow
 }
 
 type InvoiceID struct {

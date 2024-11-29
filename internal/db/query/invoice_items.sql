@@ -16,7 +16,9 @@ INSERT INTO invoice_items (
 );
 
 -- name: GetInvoiceItemsByInvoiceID :many
-SELECT * FROM invoice_items WHERE invoice_id = $1;
+SELECT * FROM invoice_items it
+JOIN product_versions pv ON pv.id = it.version_id
+WHERE it.invoice_id = $1;
 
 -- name: UpdateInvoiceItem :one
 UPDATE invoice_items 

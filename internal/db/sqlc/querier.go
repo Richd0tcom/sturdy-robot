@@ -44,7 +44,7 @@ type Querier interface {
 	// Get inventory by version ID
 	GetInventoryByVersionID(ctx context.Context, versionID pgtype.UUID) (Inventory, error)
 	GetInvoiceByID(ctx context.Context, id pgtype.UUID) (Invoice, error)
-	GetInvoiceItemsByInvoiceID(ctx context.Context, invoiceID pgtype.UUID) ([]InvoiceItem, error)
+	GetInvoiceItemsByInvoiceID(ctx context.Context, invoiceID pgtype.UUID) ([]GetInvoiceItemsByInvoiceIDRow, error)
 	GetInvoicesCreatedByUser(ctx context.Context, createdBy pgtype.UUID) ([]Invoice, error)
 	GetOrganizationByID(ctx context.Context, id pgtype.UUID) (Organization, error)
 	// Get payment by ID

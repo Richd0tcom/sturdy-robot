@@ -139,11 +139,11 @@ func GetAllInvoicesByUser(ctx context.Context, user_id string, st db.Store ) ([]
 
 
 // get invoice items
-func GetInvoiceItems(ctx context.Context, invoice_id string, st db.Store) ([]db.InvoiceItem, error) {
+func GetInvoiceItems(ctx context.Context, invoice_id string, st db.Store) ([]db.GetInvoiceItemsByInvoiceIDRow, error) {
 	items, err:= st.GetInvoiceItemsByInvoiceID(ctx, utils.ParseUUID(invoice_id))
 
 	if err != nil {
-		return []db.InvoiceItem{}, err
+		return []db.GetInvoiceItemsByInvoiceIDRow{}, err
 	}
 
 	return items, nil
@@ -172,6 +172,9 @@ func GetInvoiceActivityLog(ctx context.Context, args string, st db.Store) ([]db.
 	return logs, nil
 }
 
+func PrintPDF(ctx context.Context, invoice_id string, st db.Store) {
+	//TODO
+}
 
 
 
