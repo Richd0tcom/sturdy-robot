@@ -15,6 +15,9 @@ A robust Go-based invoice management application with advanced database and API 
 ## Project Architecture
 
 ## Database Design
+![Nume](https://github.com/user-attachments/assets/421a4038-83a0-4829-a7f8-1573c2e98301)
+
+
 
 Normalized relational schema
 
