@@ -95,8 +95,8 @@ func GetAnalytics(ctx context.Context,args requests.UserID,  st db.Store) (db.Ge
 // change invoice settings 
 
 //edit/set reminder
-func SetReminder(ctx context.Context, args requests.Reminders) {
-
+func SetReminder(ctx context.Context, args requests.UpdateReminders) {
+	
 }
 
 //get invoice 

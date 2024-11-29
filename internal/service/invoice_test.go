@@ -39,7 +39,7 @@ func TestOtherFunctions(t *testing.T) {
 	var c context.Context = context.Background()
 
 	//create organization
-	org, err:= testQueries.CreateOrganization(context.Background(), db.CreateOrganizationParams{
+	org, err:= testQueries.CreateOrganization(c, db.CreateOrganizationParams{
 		Name: "FC",
 		Email: "bankersurate@gmail.com",
 	})
@@ -47,7 +47,7 @@ func TestOtherFunctions(t *testing.T) {
 	require.NoError(t,err)
 	require.NotEmpty(t, org)
 
-	branch, err := testQueries.CreateBranch(context.Background(), db.CreateBranchParams{
+	branch, err := testQueries.CreateBranch(c, db.CreateBranchParams{
 		OrganizationID: org.ID,
 		Address: pgtype.Text{
 			String: "somewhere",
@@ -58,7 +58,7 @@ func TestOtherFunctions(t *testing.T) {
 	require.NoError(t,err)
 	require.NotEmpty(t, branch)
 
-	user, err:= testQueries.CreateUser(context.Background(), db.CreateUserParams{
+	user, err:= testQueries.CreateUser(c, db.CreateUserParams{
 		Name: "Rich",
 		BranchID: branch.ID,
 		Email: "bankersurate@gmail.com",
@@ -67,7 +67,7 @@ func TestOtherFunctions(t *testing.T) {
 	require.NoError(t,err)
 	require.NotEmpty(t, user)
 
-	payInfo,err:= testQueries.CreatePaymentInfo(context.Background(), db.CreatePaymentInfoParams{
+	payInfo,err:= testQueries.CreatePaymentInfo(c, db.CreatePaymentInfoParams{
 		UserID: user.ID,
 		AccountNo: "9182736450",
 		AccountName: user.Name,
@@ -77,7 +77,7 @@ func TestOtherFunctions(t *testing.T) {
 	require.NoError(t,err)
 	require.NotEmpty(t, payInfo)
 
-	cat, err:= testQueries.CreateCategory(context.Background(), db.CreateCategoryParams{
+	cat, err:= testQueries.CreateCategory(c, db.CreateCategoryParams{
 		BranchID: branch.ID,
 		Name: "Phones",
 	})

@@ -19,3 +19,7 @@ type UserWithTokenRes struct {
 
 	AccessToken string `json:"access_token"`
 }
+
+type LoginReq struct {
+	Email string `json:"email"`
+}

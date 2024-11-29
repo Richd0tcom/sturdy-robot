@@ -55,7 +55,27 @@ func RegisterUser(ctx context.Context, args requests.CreateOrgWithUser, st db.St
 		AccessToken: token,
 	}, nil
 
+}
 
+func GetUserSession(ctx context.Context, args requests.LoginReq, st db.Store) (requests.UserWithTokenRes, error) {
+	user,err := st.GetUserByEmail(ctx, args.Email)
 
+	if err != nil {
+		return requests.UserWithTokenRes{}, err
+	}
 
+	u:= make(map[string]pgtype.UUID)
+	u["user_id"] = user.ID
+	u["branch_id"] = user.BranchID
+
+	token, err:= utils.GenerateToken(u)
+
+	if err != nil {
+		return requests.UserWithTokenRes{}, err
+	}
+
+	return requests.UserWithTokenRes{
+		User: user,
+		AccessToken: token,
+	}, nil
 }

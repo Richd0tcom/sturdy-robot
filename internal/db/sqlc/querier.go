@@ -55,6 +55,7 @@ type Querier interface {
 	GetProductsByBranchID(ctx context.Context, branchID pgtype.UUID) (Product, error)
 	GetProductsByID(ctx context.Context, id pgtype.UUID) (Product, error)
 	GetTotalsByStatuses(ctx context.Context, createdBy pgtype.UUID) (GetTotalsByStatusesRow, error)
+	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, id pgtype.UUID) (User, error)
 	// Update inventory
 	UpdateInventory(ctx context.Context, arg UpdateInventoryParams) (Inventory, error)

@@ -13,3 +13,7 @@ INSERT INTO users (
 -- name: GetUserById :one
 SELECT * from users 
 where id = $1 LIMIT 1;
+
+-- name: GetUserByEmail :one
+SELECT * from users 
+where email = $1 LIMIT 1;

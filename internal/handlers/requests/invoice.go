@@ -36,19 +36,7 @@ type InvoiceID struct {
     ID string `uri:"id" binding:"required,uuid"`
 }
 
-
-type Reminders []string
-
-
-// func parseInvoiceReqParams(ci CreateInvoiceReq) db.CreateInvoiceParams {
-//     customerID
-//     db.CreateInvoiceParams{
-
-// 		CustomerID: utils.ParseUUID(args.CustomerID),
-// 		CurrencyID: utils.ParseUUID(args.CurrencyID),
-// 		InvoiceNumber: utils.RandomInvoiceNumber(),
-// 		Subtotal: utils.DecimalToPGNumeric(sub_total),
-// 		Status: args.Status,
-// 		DueDate: utils.,
-// 	}
-// }
+type UpdateReminders struct {
+    InvoiceID string
+    Reminders []string
+}
