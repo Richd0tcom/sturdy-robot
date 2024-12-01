@@ -8,7 +8,6 @@ import (
 	db "github.com/Richd0tcom/sturdy-robot/internal/db/sqlc"
 	"github.com/Richd0tcom/sturdy-robot/internal/handlers/requests"
 	"github.com/Richd0tcom/sturdy-robot/internal/utils"
-	"github.com/jackc/pgx/v5"
 
 	"github.com/shopspring/decimal"
 )
@@ -107,6 +106,8 @@ func UpdateInvoice(ctx context.Context, invoiceID string, args requests.UpdateIn
 		return requests.InvoiceResponse{}, err
 	}
 
+	var invoiceRes requests.InvoiceResponse
+
 	invoiceToSet := db.UpdateInvoiceParams{
 		ID: invoice.ID,
 	}
@@ -155,19 +156,15 @@ func UpdateInvoice(ctx context.Context, invoiceID string, args requests.UpdateIn
 
 	// sort and recalculate invoice items
 
-
-	if err != nil {
-		fmt.Println(err)
-		return requests.InvoiceResponse{}, err
-	}
-
 	st.ExecTx(ctx, func(q *db.Queries) error {
 
-		_, err:= st.UpdateInvoice(ctx, invoiceToSet)
+		inv, err:= st.UpdateInvoice(ctx, invoiceToSet)
 
 		if err != nil {
 			return err
 		}
+
+		invoiceRes.Invoice  = inv
 
 		err=st.DeleteItemsByInvoiceId(ctx, invoice.ID)
 		if err != nil {
@@ -197,8 +194,16 @@ func UpdateInvoice(ctx context.Context, invoiceID string, args requests.UpdateIn
 			return err
 		}
 
+		invoiceRes.Items, err = st.GetInvoiceItemsByInvoiceID(ctx, inv.ID)
+
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
+
+	return invoiceRes, nil
 }
 
 // see analytics
@@ -285,6 +290,10 @@ func GetInvoiceActivityLog(ctx context.Context, args string, st db.Store) ([]db.
 	}
 
 	return logs, nil
+}
+
+func ConfirmPayment(ctx context.Context, args requests.ConfirmPaymentRequest, st db.Store) {
+	//TODO
 }
 
 func PrintPDF(ctx context.Context, invoice_id string, st db.Store) {

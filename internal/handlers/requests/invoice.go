@@ -46,3 +46,16 @@ type UpdateReminders struct {
     InvoiceID string
     Reminders []string
 }
+
+type ConfirmPaymentRequest struct {
+    InvoiceID string `json:"invoice_id" binding:"required`
+
+    PaymentDetails 
+}
+
+type PaymentDetails struct {
+    PaymentMethod string `json:"payment_method"`
+    PaymentAmount float64 `json:"payment_amount"`
+    PaymentRef string `json:"payment_ref"`
+    
+}
