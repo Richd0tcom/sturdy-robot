@@ -21,11 +21,11 @@ type InvoiceItem struct {
 }
 
 type InvoiceResponse struct {
-    Currency db.Currency
-    Invoice db.Invoice
+    Currency db.Currency `json:"currency"`
+    Invoice db.Invoice `json:"invoice"`
     SenderInfo db.User `json:"sender_info"`
     CustomerInfo db.Customer `json:"customer_info"`
-    Items []db.GetInvoiceItemsByInvoiceIDRow
+    Items []db.GetInvoiceItemsByInvoiceIDRow `json:"items"`
 }
 
 type InvoiceID struct {

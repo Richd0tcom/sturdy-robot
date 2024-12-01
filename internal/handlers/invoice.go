@@ -171,12 +171,12 @@ func (s *Server) GetPaymentInfo(ctx *gin.Context) {
 func (s *Server) GetInvoiceActivityLog(ctx *gin.Context) {
 	invoice_id, ok := ctx.Params.Get("invoice_id")
 	if !ok {
-		ctx.JSON(400, gin.H{})
+		ctx.JSON(400, buildErrorResponse(fmt.Errorf("invalid invoice id")))
 		return
 	}
 	logs, err:= service.GetInvoiceActivityLog(ctx, invoice_id, s.store)
 	if err != nil {
-		ctx.JSON(400, gin.H{})
+		ctx.JSON(400, buildErrorResponse(err))
 		return
 	}
 

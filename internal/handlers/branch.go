@@ -11,7 +11,6 @@ import (
 
 func (s *Server) SetupBranchHandler()  {
 	r:= s.serverRouter.Group("/branches")
-
 	
 	r.POST("/customer", s.AddCustomer)
 	r.GET("/customer")
@@ -26,18 +25,16 @@ func (s *Server) AddCustomer(ctx *gin.Context) {
 
 	err:= ctx.ShouldBindJSON(&arg)
 	if err != nil {
-		ctx.JSON(400, gin.H{})
+		ctx.JSON(400, buildErrorResponse(err))
 		return 
 	}
 	customer, err:= service.AddCustomer(ctx, arg, s.store)
 
 	if err != nil {
-		ctx.JSON(400, gin.H{})
+		ctx.JSON(400, buildErrorResponse(err))
 		return 
 	}
 	ctx.JSON(http.StatusOK, customer)
-
-
 }
 
 func (s *Server) RemoveCustomer(ctx *gin.Context) {
@@ -45,30 +42,30 @@ func (s *Server) RemoveCustomer(ctx *gin.Context) {
 
 	err:=ctx.ShouldBindJSON(&arg)
 	if err != nil {
-		ctx.JSON(400, gin.H{})
+		ctx.JSON(400, buildErrorResponse(err))
 		return 
 	}
 
 	err= service.RemoveCustomer(ctx, arg.ID, s.store)
 
 	if err != nil {
-		ctx.JSON(400, gin.H{})
+		ctx.JSON(400, buildErrorResponse(err))
 		return 
 	}
-	ctx.JSON(http.StatusOK, gin.H{})
+	ctx.JSON(http.StatusOK, buildSuccessResponse(gin.H{}))
 }
 
 func (s *Server) GetActivityLog(ctx *gin.Context) {
 	claims, err := utils.ExtractTokenIDs(ctx)
 	if err != nil {
-		ctx.JSON(400, gin.H{})
+		ctx.JSON(400, buildErrorResponse(err))
 		return
 	}
 	userID := claims["user_id"].(string)
 	logs, err:= service.GetUserActivityLog(ctx, userID, s.store)
 
 	if err != nil {
-		ctx.JSON(400, gin.H{})
+		ctx.JSON(400, buildErrorResponse(err))
 		return
 	}
 

@@ -9,81 +9,92 @@ import (
 	"github.com/Richd0tcom/sturdy-robot/internal/handlers/requests"
 	"github.com/Richd0tcom/sturdy-robot/internal/utils"
 
-
 	"github.com/shopspring/decimal"
 )
 
 // create new invoice
-func CreateNewInvoice(ctx context.Context, userID string,  args requests.CreateInvoiceReq, st db.Store) (requests.InvoiceResponse, error){
+func CreateNewInvoice(ctx context.Context, userID string, args requests.CreateInvoiceReq, st db.Store) (requests.InvoiceResponse, error) {
 
-	sub_total:= decimal.NewFromInt(0)
-	for _, item:= range args.InvoiceItems {
-		sub_total = sub_total.Add(decimal.NewFromInt(int64(item.Quantity)).Mul(decimal.NewFromFloat(item.UnitPrice))) 
+	sub_total := decimal.NewFromInt(0)
+	for _, item := range args.InvoiceItems {
+		sub_total = sub_total.Add(decimal.NewFromInt(int64(item.Quantity)).Mul(decimal.NewFromFloat(item.UnitPrice)))
 	}
-	rem, err:= json.Marshal(args.Reminders)
+	rem, err := json.Marshal(args.Reminders)
 
-	if err!=nil {
+	if err != nil {
 		fmt.Println(err)
 		return requests.InvoiceResponse{}, err
 	}
 
-	invoice, err:= st.CreateInvoice(ctx,db.CreateInvoiceParams{
-		CustomerID: utils.ParseUUID(args.CustomerID),
-		CurrencyID: utils.ParseUUID(args.CurrencyID),
-		InvoiceNumber: utils.RandomInvoiceNumber(),
-		Subtotal: utils.DecimalToPGNumeric(sub_total),
-		Status: args.Status,
-		Total: utils.DecimalToPGNumeric(sub_total), //change to db generated
-		DueDate: utils.ParseDate(args.DueDate),
-		Reminders: rem,
-		CreatedBy: utils.ParseUUID(userID),
+	var invoice requests.InvoiceResponse
+
+	err = st.ExecTx(ctx, func(q *db.Queries) error {
+		invoice.Invoice, err = q.CreateInvoice(ctx, db.CreateInvoiceParams{
+			CustomerID:    utils.ParseUUID(args.CustomerID),
+			CurrencyID:    utils.ParseUUID(args.CurrencyID),
+			InvoiceNumber: utils.RandomInvoiceNumber(),
+			Subtotal:      utils.DecimalToPGNumeric(sub_total),
+			Status:        args.Status,
+			Total:         utils.DecimalToPGNumeric(sub_total), //change to db generated
+			DueDate:       utils.ParseDate(args.DueDate),
+			Reminders:     rem,
+			CreatedBy:     utils.ParseUUID(userID),
+		})
+
+		if err != nil {
+			return err
+		}
+
+		items := make([]db.CreateMultipleInvoiceItemsParams, len(args.InvoiceItems))
+
+		for i, item := range args.InvoiceItems {
+			sub_total := decimal.NewFromInt(0)
+			sub_total = sub_total.Add(decimal.NewFromInt(int64(item.Quantity)).Mul(decimal.NewFromFloat(item.UnitPrice)))
+
+			items[i] = db.CreateMultipleInvoiceItemsParams{
+				ID:        utils.ParseUUID(utils.NewRandomUUID().String()),
+				InvoiceID: invoice.Invoice.ID,
+				VersionID: utils.ParseUUID(item.VersionID),
+				Quantity:  int32(item.Quantity),
+				UnitPrice: utils.DecimalToPGNumeric(decimal.NewFromFloat(item.UnitPrice)),
+				Subtotal:  utils.DecimalToPGNumeric(sub_total),
+			}
+		}
+
+		_, err = st.CreateMultipleInvoiceItems(ctx, items)
+
+		if err != nil {
+			return err
+		}
+
+		invoice.Items, err = st.GetInvoiceItemsByInvoiceID(ctx, invoice.Invoice.ID)
+
+		if args.Status != "draft" {
+			_, err = q.CreateActivityLog(ctx, db.CreateActivityLogParams{
+				EntityType: "invoice",
+				EntityID:   invoice.Invoice.ID,
+				Action:     "Create Invoice",
+			})
+
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
 	})
 
-	if err!=nil {
+	if err != nil {
 		fmt.Println(err)
 		return requests.InvoiceResponse{}, err
 	}
 
-
-	items:= make([]db.CreateMultipleInvoiceItemsParams, len(args.InvoiceItems))
-
-	for i, item := range args.InvoiceItems {
-		sub_total:= decimal.NewFromInt(0)
-		sub_total= sub_total.Add(decimal.NewFromInt(int64(item.Quantity)).Mul(decimal.NewFromFloat(item.UnitPrice))) 
-		
-		items[i] = db.CreateMultipleInvoiceItemsParams{
-			ID: utils.ParseUUID(utils.NewRandomUUID().String()),
-			InvoiceID: invoice.ID,
-			VersionID: utils.ParseUUID(item.VersionID),
-			Quantity: int32(item.Quantity),
-			UnitPrice: utils.DecimalToPGNumeric(decimal.NewFromFloat(item.UnitPrice)),
-			Subtotal: utils.DecimalToPGNumeric(sub_total),
-		}
-	}
-
-	_, err= st.CreateMultipleInvoiceItems(ctx, items)
-
-	go func(ctx context.Context){
-		st.CreateActivityLog(ctx, db.CreateActivityLogParams{
-
-		})
-	}(ctx)
-
-	if err!= nil {
-		return requests.InvoiceResponse{}, err
-	}
-
-	invoiceItems, err:=st.GetInvoiceItemsByInvoiceID(ctx, invoice.ID)
-	return requests.InvoiceResponse{
-		Invoice: invoice,
-		Items: invoiceItems,
-	}, err
+	return invoice, err
 }
 
-
 // see analytics
-func GetAnalytics(ctx context.Context, userID string,  st db.Store) (db.GetTotalsByStatusesRow, error){
-	row, err:= st.GetTotalsByStatuses(ctx, utils.ParseUUID(userID) )
+func GetAnalytics(ctx context.Context, userID string, st db.Store) (db.GetTotalsByStatusesRow, error) {
+	row, err := st.GetTotalsByStatuses(ctx, utils.ParseUUID(userID))
 
 	if err != nil {
 		return db.GetTotalsByStatusesRow{}, err
@@ -91,56 +102,53 @@ func GetAnalytics(ctx context.Context, userID string,  st db.Store) (db.GetTotal
 	return row, nil
 }
 
+// change invoice settings
 
-// change invoice settings 
-
-//edit/set reminder
+// edit/set reminder
 func SetReminder(ctx context.Context, args requests.UpdateReminders, st db.Store) {
-	
+
 }
 
-//get invoice 
-func GetInvoice(ctx context.Context, invoice_id string, st db.Store ) (requests.InvoiceResponse, error){
-	inv, err:= st.GetInvoiceByID(ctx, utils.ParseUUID(invoice_id))
+// get invoice
+func GetInvoice(ctx context.Context, invoice_id string, st db.Store) (requests.InvoiceResponse, error) {
+	inv, err := st.GetInvoiceByID(ctx, utils.ParseUUID(invoice_id))
 	if err != nil {
 		return requests.InvoiceResponse{}, err
 	}
-	sender, err:= st.GetUserById(ctx, inv.CreatedBy)
-	if err != nil {
-		return requests.InvoiceResponse{}, err
-	}
-
-	customer,err:= st.GetCustomerById(ctx, inv.CustomerID)
+	sender, err := st.GetUserById(ctx, inv.CreatedBy)
 	if err != nil {
 		return requests.InvoiceResponse{}, err
 	}
 
-	items, err:= st.GetInvoiceItemsByInvoiceID(ctx, utils.ParseUUID(invoice_id))
+	customer, err := st.GetCustomerById(ctx, inv.CustomerID)
+	if err != nil {
+		return requests.InvoiceResponse{}, err
+	}
+
+	items, err := st.GetInvoiceItemsByInvoiceID(ctx, utils.ParseUUID(invoice_id))
 	if err != nil {
 		return requests.InvoiceResponse{}, err
 	}
 
 	return requests.InvoiceResponse{
-		Invoice: inv,
-		SenderInfo: sender,
+		Invoice:      inv,
+		SenderInfo:   sender,
 		CustomerInfo: customer,
-		Items: items,
+		Items:        items,
 	}, nil
 }
 
-func GetAllInvoicesByUser(ctx context.Context, user_id string, st db.Store ) ([]db.Invoice, error){
-	invs, err:= st.GetInvoicesCreatedByUser(ctx, utils.ParseUUID(user_id))
+func GetAllInvoicesByUser(ctx context.Context, user_id string, st db.Store) ([]db.Invoice, error) {
+	invs, err := st.GetInvoicesCreatedByUser(ctx, utils.ParseUUID(user_id))
 	if err != nil {
 		return []db.Invoice{}, err
 	}
 	return invs, nil
 }
 
-
-
 // get invoice items
 func GetInvoiceItems(ctx context.Context, invoice_id string, st db.Store) ([]db.GetInvoiceItemsByInvoiceIDRow, error) {
-	items, err:= st.GetInvoiceItemsByInvoiceID(ctx, utils.ParseUUID(invoice_id))
+	items, err := st.GetInvoiceItemsByInvoiceID(ctx, utils.ParseUUID(invoice_id))
 
 	if err != nil {
 		return []db.GetInvoiceItemsByInvoiceIDRow{}, err
@@ -150,8 +158,8 @@ func GetInvoiceItems(ctx context.Context, invoice_id string, st db.Store) ([]db.
 }
 
 // get payment info
-func GetPaymentInfo(ctx context.Context,  userID string, st db.Store) (db.PaymentInfo, error){
-	info, err:= st.GetPaymentInfoByUserID(ctx, utils.ParseUUID(userID))
+func GetPaymentInfo(ctx context.Context, userID string, st db.Store) (db.PaymentInfo, error) {
+	info, err := st.GetPaymentInfoByUserID(ctx, utils.ParseUUID(userID))
 
 	if err != nil {
 		return db.PaymentInfo{}, err
@@ -160,10 +168,8 @@ func GetPaymentInfo(ctx context.Context,  userID string, st db.Store) (db.Paymen
 	return info, nil
 }
 
-
-
 func GetInvoiceActivityLog(ctx context.Context, args string, st db.Store) ([]db.ActivityLog, error) {
-	logs, err:= st.GetActivityLogByEntityID(ctx,  utils.ParseUUID(args))
+	logs, err := st.GetActivityLogByEntityID(ctx, utils.ParseUUID(args))
 
 	if err != nil {
 		return []db.ActivityLog{}, err
@@ -175,6 +181,3 @@ func GetInvoiceActivityLog(ctx context.Context, args string, st db.Store) ([]db.
 func PrintPDF(ctx context.Context, invoice_id string, st db.Store) {
 	//TODO
 }
-
-
-

@@ -32,5 +32,9 @@ func (server *Server) Start (address string) error {
 }
 
 func buildErrorResponse(err error) gin.H {
-	return gin.H{"error": err.Error()}
+	return gin.H{"status": "error", "data": err.Error()}
+}
+
+func buildSuccessResponse(i interface{}) gin.H {
+	return gin.H{"status": "success", "data": i}
 }
