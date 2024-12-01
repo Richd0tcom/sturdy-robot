@@ -29,6 +29,7 @@ type Querier interface {
 	CreateProductVersion(ctx context.Context, arg CreateProductVersionParams) (ProductVersion, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteCustomerByID(ctx context.Context, id pgtype.UUID) error
+	DeleteItemsByInvoiceId(ctx context.Context, invoiceID pgtype.UUID) error
 	GetActivityLogByEntityID(ctx context.Context, entityID pgtype.UUID) ([]ActivityLog, error)
 	GetActivityLogsByUserID(ctx context.Context, userID pgtype.UUID) ([]ActivityLog, error)
 	GetBranchByID(ctx context.Context, id pgtype.UUID) (Branch, error)
@@ -62,6 +63,7 @@ type Querier interface {
 	UpdateInventory(ctx context.Context, arg UpdateInventoryParams) (Inventory, error)
 	UpdateInvoice(ctx context.Context, arg UpdateInvoiceParams) (Invoice, error)
 	UpdateInvoiceItem(ctx context.Context, arg UpdateInvoiceItemParams) (InvoiceItem, error)
+	UpdateInvoicePayment(ctx context.Context, arg UpdateInvoicePaymentParams) (Invoice, error)
 	// Update payment
 	UpdatePayment(ctx context.Context, arg UpdatePaymentParams) (Payment, error)
 	UpdatePaymentInfo(ctx context.Context, arg UpdatePaymentInfoParams) error

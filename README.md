@@ -95,6 +95,6 @@ Efficient query design
 ### TODO
 - pdf generation
 - cron jobs for reminders
-- caching for frequently fetched data
+- caching for frequently fetched data (drafts)
 - extensive data validation
 - payment confirmation

@@ -14,6 +14,16 @@ type CreateInvoiceReq struct {
     InvoiceItems   []InvoiceItem `json:"invoice_items"`
 }
 
+type UpdateInvoiceReq struct {
+	CurrencyID     string `json:"currency_id"`
+    CustomerID     string `json:"customer_id"`
+    DueDate        string `json:"due_date"`
+    Reminders      []string `json:"reminders"`
+    PaymentInfoID  string `json:"payment_info_id"`
+    Status         string `json:"status"`
+    InvoiceItems   []InvoiceItem `json:"invoice_items"`
+}
+
 type InvoiceItem struct {
     VersionID      string  `json:"version_id"`
     Quantity       int     `json:"quantity"`

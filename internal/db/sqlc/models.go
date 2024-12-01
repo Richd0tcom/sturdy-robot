@@ -124,6 +124,7 @@ type Invoice struct {
 	Metadata      []byte             `json:"metadata"`
 	AmountPaid    pgtype.Numeric     `json:"amount_paid"`
 	BalanceDue    pgtype.Numeric     `json:"balance_due"`
+	PaymentInfo   pgtype.UUID        `json:"payment_info"`
 }
 
 type InvoiceItem struct {

@@ -58,6 +58,16 @@ type CreateMultipleInvoiceItemsParams struct {
 	Subtotal  pgtype.Numeric `json:"subtotal"`
 }
 
+const deleteItemsByInvoiceId = `-- name: DeleteItemsByInvoiceId :exec
+DELETE FROM invoice_items
+WHERE invoice_id = $1
+`
+
+func (q *Queries) DeleteItemsByInvoiceId(ctx context.Context, invoiceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteItemsByInvoiceId, invoiceID)
+	return err
+}
+
 const getInvoiceItemsByInvoiceID = `-- name: GetInvoiceItemsByInvoiceID :many
 SELECT it.id, invoice_id, version_id, quantity, unit_price, subtotal, metadata, pv.id, product_id, branch_id, name, price_adjustment, attributes, stock_quantity, reorder_point, created_at FROM invoice_items it
 JOIN product_versions pv ON pv.id = it.version_id

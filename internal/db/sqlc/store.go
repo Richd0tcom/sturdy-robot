@@ -30,7 +30,7 @@ func NewStore(db *pgxpool.Pool) Store {
 	}
 }
 
-// Takes a context and a callback function as input, starts a new database transaction, creat a new Queries object and with that transaction and call the callback function with the created Queries object and finally commit or rollback the transaction based on the error returned by the callback function.
+// Takes a context and a callback function as input, starts a new database transaction, creat a new Queries object and with that transaction and calls the callback function with the created Queries object and finally commit or rollback the transaction based on the error returned by the callback function.
 func (store *SQLStore) ExecTx(ctx context.Context, fn func(*Queries) error) error {
 
 	tx, err := store.db.BeginTx(ctx, pgx.TxOptions{})

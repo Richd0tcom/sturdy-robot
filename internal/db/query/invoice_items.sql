@@ -29,3 +29,7 @@ SET
     subtotal = $5
 WHERE id = $1 
 RETURNING *;
+
+-- name: DeleteItemsByInvoiceId :exec
+DELETE FROM invoice_items
+WHERE invoice_id = $1;

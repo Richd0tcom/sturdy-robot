@@ -15,11 +15,11 @@ const createInvoice = `-- name: CreateInvoice :one
 INSERT INTO invoices (
     id, customer_id, invoice_number, subtotal, 
     discount, total, status, created_by, 
-    currency_id, due_date, reminders
+    currency_id, due_date, reminders, payment_info
 ) VALUES (
     uuid_generate_v4(), $1, $2, $3, $4, $5, 
-    $6, $7, $8, $9, $10
-) RETURNING id, customer_id, invoice_number, subtotal, discount, total, status, created_by, created_at, currency_id, due_date, reminders, metadata, amount_paid, balance_due
+    $6, $7, $8, $9, $10, $11
+) RETURNING id, customer_id, invoice_number, subtotal, discount, total, status, created_by, created_at, currency_id, due_date, reminders, metadata, amount_paid, balance_due, payment_info
 `
 
 type CreateInvoiceParams struct {
@@ -33,6 +33,7 @@ type CreateInvoiceParams struct {
 	CurrencyID    pgtype.UUID        `json:"currency_id"`
 	DueDate       pgtype.Timestamptz `json:"due_date"`
 	Reminders     []byte             `json:"reminders"`
+	PaymentInfo   pgtype.UUID        `json:"payment_info"`
 }
 
 func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (Invoice, error) {
@@ -47,6 +48,7 @@ func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (I
 		arg.CurrencyID,
 		arg.DueDate,
 		arg.Reminders,
+		arg.PaymentInfo,
 	)
 	var i Invoice
 	err := row.Scan(
@@ -65,12 +67,13 @@ func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (I
 		&i.Metadata,
 		&i.AmountPaid,
 		&i.BalanceDue,
+		&i.PaymentInfo,
 	)
 	return i, err
 }
 
 const getInvoiceByID = `-- name: GetInvoiceByID :one
-SELECT id, customer_id, invoice_number, subtotal, discount, total, status, created_by, created_at, currency_id, due_date, reminders, metadata, amount_paid, balance_due FROM invoices WHERE id = $1 LIMIT 1
+SELECT id, customer_id, invoice_number, subtotal, discount, total, status, created_by, created_at, currency_id, due_date, reminders, metadata, amount_paid, balance_due, payment_info FROM invoices WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetInvoiceByID(ctx context.Context, id pgtype.UUID) (Invoice, error) {
@@ -92,12 +95,13 @@ func (q *Queries) GetInvoiceByID(ctx context.Context, id pgtype.UUID) (Invoice, 
 		&i.Metadata,
 		&i.AmountPaid,
 		&i.BalanceDue,
+		&i.PaymentInfo,
 	)
 	return i, err
 }
 
 const getInvoicesCreatedByUser = `-- name: GetInvoicesCreatedByUser :many
-SELECT id, customer_id, invoice_number, subtotal, discount, total, status, created_by, created_at, currency_id, due_date, reminders, metadata, amount_paid, balance_due FROM invoices WHERE created_by = $1
+SELECT id, customer_id, invoice_number, subtotal, discount, total, status, created_by, created_at, currency_id, due_date, reminders, metadata, amount_paid, balance_due, payment_info FROM invoices WHERE created_by = $1
 `
 
 func (q *Queries) GetInvoicesCreatedByUser(ctx context.Context, createdBy pgtype.UUID) ([]Invoice, error) {
@@ -125,6 +129,7 @@ func (q *Queries) GetInvoicesCreatedByUser(ctx context.Context, createdBy pgtype
 			&i.Metadata,
 			&i.AmountPaid,
 			&i.BalanceDue,
+			&i.PaymentInfo,
 		); err != nil {
 			return nil, err
 		}
@@ -170,38 +175,47 @@ func (q *Queries) GetTotalsByStatuses(ctx context.Context, createdBy pgtype.UUID
 const updateInvoice = `-- name: UpdateInvoice :one
 UPDATE invoices 
 SET 
-    invoice_number = $2, 
+    customer_id = $2, 
     subtotal = $3, 
     discount = $4, 
     total = $5, 
     status = $6, 
-    amount_paid = $7,
-    reminders = $8
+    reminders = $7,
+     currency_id= $8,
+     metadata= $9,
+     due_date= $10,
+     payment_info= $11
 WHERE id = $1 
-RETURNING id, customer_id, invoice_number, subtotal, discount, total, status, created_by, created_at, currency_id, due_date, reminders, metadata, amount_paid, balance_due
+RETURNING id, customer_id, invoice_number, subtotal, discount, total, status, created_by, created_at, currency_id, due_date, reminders, metadata, amount_paid, balance_due, payment_info
 `
 
 type UpdateInvoiceParams struct {
-	ID            pgtype.UUID    `json:"id"`
-	InvoiceNumber string         `json:"invoice_number"`
-	Subtotal      pgtype.Numeric `json:"subtotal"`
-	Discount      pgtype.Numeric `json:"discount"`
-	Total         pgtype.Numeric `json:"total"`
-	Status        string         `json:"status"`
-	AmountPaid    pgtype.Numeric `json:"amount_paid"`
-	Reminders     []byte         `json:"reminders"`
+	ID          pgtype.UUID        `json:"id"`
+	CustomerID  pgtype.UUID        `json:"customer_id"`
+	Subtotal    pgtype.Numeric     `json:"subtotal"`
+	Discount    pgtype.Numeric     `json:"discount"`
+	Total       pgtype.Numeric     `json:"total"`
+	Status      string             `json:"status"`
+	Reminders   []byte             `json:"reminders"`
+	CurrencyID  pgtype.UUID        `json:"currency_id"`
+	Metadata    []byte             `json:"metadata"`
+	DueDate     pgtype.Timestamptz `json:"due_date"`
+	PaymentInfo pgtype.UUID        `json:"payment_info"`
 }
 
 func (q *Queries) UpdateInvoice(ctx context.Context, arg UpdateInvoiceParams) (Invoice, error) {
 	row := q.db.QueryRow(ctx, updateInvoice,
 		arg.ID,
-		arg.InvoiceNumber,
+		arg.CustomerID,
 		arg.Subtotal,
 		arg.Discount,
 		arg.Total,
 		arg.Status,
-		arg.AmountPaid,
 		arg.Reminders,
+		arg.CurrencyID,
+		arg.Metadata,
+		arg.DueDate,
+		arg.PaymentInfo,
 	)
 	var i Invoice
 	err := row.Scan(
@@ -220,6 +234,46 @@ func (q *Queries) UpdateInvoice(ctx context.Context, arg UpdateInvoiceParams) (I
 		&i.Metadata,
 		&i.AmountPaid,
 		&i.BalanceDue,
+		&i.PaymentInfo,
+	)
+	return i, err
+}
+
+const updateInvoicePayment = `-- name: UpdateInvoicePayment :one
+UPDATE invoices 
+SET 
+    amount_paid = $2, 
+    status = $3
+WHERE id = $1 
+RETURNING id, customer_id, invoice_number, subtotal, discount, total, status, created_by, created_at, currency_id, due_date, reminders, metadata, amount_paid, balance_due, payment_info
+`
+
+type UpdateInvoicePaymentParams struct {
+	ID         pgtype.UUID    `json:"id"`
+	AmountPaid pgtype.Numeric `json:"amount_paid"`
+	Status     string         `json:"status"`
+}
+
+func (q *Queries) UpdateInvoicePayment(ctx context.Context, arg UpdateInvoicePaymentParams) (Invoice, error) {
+	row := q.db.QueryRow(ctx, updateInvoicePayment, arg.ID, arg.AmountPaid, arg.Status)
+	var i Invoice
+	err := row.Scan(
+		&i.ID,
+		&i.CustomerID,
+		&i.InvoiceNumber,
+		&i.Subtotal,
+		&i.Discount,
+		&i.Total,
+		&i.Status,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.CurrencyID,
+		&i.DueDate,
+		&i.Reminders,
+		&i.Metadata,
+		&i.AmountPaid,
+		&i.BalanceDue,
+		&i.PaymentInfo,
 	)
 	return i, err
 }

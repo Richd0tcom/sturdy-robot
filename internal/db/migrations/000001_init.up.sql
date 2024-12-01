@@ -151,7 +151,10 @@ CREATE TABLE invoices (
     -- for patial payment
     amount_paid DECIMAL(15,2) NOT NULL DEFAULT 0,
     balance_due DECIMAL(15,2) GENERATED ALWAYS AS (total - amount_paid) STORED,
-    CONSTRAINT valid_total CHECK (total = subtotal - discount)
+    CONSTRAINT valid_total CHECK (total = subtotal - discount),
+
+    -- sender payment info 
+    payment_info UUID REFERENCES payment_info(id)
 );
 
 -- Payment transactions table
