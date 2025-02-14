@@ -48,7 +48,7 @@ type UpdateReminders struct {
 }
 
 type ConfirmPaymentRequest struct {
-    InvoiceID string `json:"invoice_id" binding:"required`
+    InvoiceID string `json:"invoice_id" binding:"required"`
 
     PaymentDetails 
 }

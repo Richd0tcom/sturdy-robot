@@ -22,6 +22,8 @@ func NewServer(store db.Store) *Server {
 	}
 
 	server.SetupInvoiceHandler()
+	server.SetupProductHandler()
+	server.SetupCustomerHandler()
 
 	return server
 }

@@ -23,12 +23,12 @@ func (s *Server) SetupInvoiceHandler() {
 	}) //helo world handlerd
 	r.POST("/", s.CreateInvoice)
 	r.PATCH("/:id", s.UpdateInvoice)
-	r.GET("/all", s.GetAllInvoices)
+	r.GET("/", s.GetAllInvoices)
 	r.GET("/analytics", s.GetAnalytics)
 	r.POST("/reminder", s.SetReminder)
 	r.GET("payment-info", s.GetPaymentInfo)
 	r.GET("/activity", s.GetInvoiceActivityLog)
-	r.GET("/:id/items", s.GetInvoiceItems)
+	r.GET("/invoice/:id/items", s.GetInvoiceItems)
 	r.GET("/:id", s.GetInvoice)
 	
 
@@ -109,13 +109,13 @@ func (s *Server) GetInvoice(ctx *gin.Context) {
 
 func (s *Server) GetAllInvoices(ctx *gin.Context) {
 
-	claims, err := utils.ExtractTokenIDs(ctx)
-	if err != nil {
-		ctx.JSON(400, gin.H{})
-		return
-	}
-	userID := claims["id"].(string)
-	invoices, err := service.GetAllInvoicesByUser(ctx, userID, s.store)
+	// claims, err := utils.ExtractTokenIDs(ctx)
+	// if err != nil {
+	// 	ctx.JSON(400, gin.H{})
+	// 	return
+	// }
+	// userID := claims["id"].(string)
+	invoices, err := service.GetAllInvoices(ctx, s.store)
 
 	if err != nil {
 		ctx.JSON(400, gin.H{})

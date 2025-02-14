@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func RegisterUser(ctx context.Context, args requests.CreateOrgWithUser, st db.Store) (requests.UserWithTokenRes, error) {
+func RegisterAdminUser(ctx context.Context, args requests.CreateOrgWithUser, st db.Store) (requests.UserWithTokenRes, error) {
 	
 	org, err:= st.CreateOrganization(ctx, db.CreateOrganizationParams{
 		Name: args.OrganaizationName,

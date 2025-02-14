@@ -154,7 +154,7 @@ CREATE TABLE invoices (
     CONSTRAINT valid_total CHECK (total = subtotal - discount),
 
     -- sender payment info 
-    payment_info UUID REFERENCES payment_info(id)
+    payment_info_id UUID REFERENCES payment_info(id)
 );
 
 -- Payment transactions table

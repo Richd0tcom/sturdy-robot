@@ -67,31 +67,44 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 	return i, err
 }
 
-const getProductsByBranchID = `-- name: GetProductsByBranchID :one
+const getProductsByBranchID = `-- name: GetProductsByBranchID :many
 SELECT id, category_id, branch_id, name, product_type, service_pricing_model, default_unit, is_billable, sku, description, base_price, custom_fields, created_at, updated_at FROM products 
 WHERE branch_id = $1 LIMIT 1
 `
 
-func (q *Queries) GetProductsByBranchID(ctx context.Context, branchID pgtype.UUID) (Product, error) {
-	row := q.db.QueryRow(ctx, getProductsByBranchID, branchID)
-	var i Product
-	err := row.Scan(
-		&i.ID,
-		&i.CategoryID,
-		&i.BranchID,
-		&i.Name,
-		&i.ProductType,
-		&i.ServicePricingModel,
-		&i.DefaultUnit,
-		&i.IsBillable,
-		&i.Sku,
-		&i.Description,
-		&i.BasePrice,
-		&i.CustomFields,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
+func (q *Queries) GetProductsByBranchID(ctx context.Context, branchID pgtype.UUID) ([]Product, error) {
+	rows, err := q.db.Query(ctx, getProductsByBranchID, branchID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Product{}
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.CategoryID,
+			&i.BranchID,
+			&i.Name,
+			&i.ProductType,
+			&i.ServicePricingModel,
+			&i.DefaultUnit,
+			&i.IsBillable,
+			&i.Sku,
+			&i.Description,
+			&i.BasePrice,
+			&i.CustomFields,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getProductsByID = `-- name: GetProductsByID :one

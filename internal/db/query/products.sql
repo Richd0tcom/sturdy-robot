@@ -12,7 +12,7 @@ SELECT * FROM products
 WHERE id = $1 LIMIT 1;
 
 
--- name: GetProductsByBranchID :one
+-- name: GetProductsByBranchID :many
 SELECT * FROM products 
 WHERE branch_id = $1 LIMIT 1;
 

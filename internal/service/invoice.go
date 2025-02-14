@@ -41,7 +41,7 @@ func CreateNewInvoice(ctx context.Context, userID string, args requests.CreateIn
 			DueDate:       utils.ParseDate(args.DueDate),
 			Reminders:     rem,
 			CreatedBy:     utils.ParseUUID(userID),
-			PaymentInfo:   utils.ParseUUID(args.PaymentInfoID),
+			PaymentInfoID:   utils.ParseUUID(args.PaymentInfoID),
 		})
 
 		if err != nil {
@@ -128,9 +128,9 @@ func UpdateInvoice(ctx context.Context, invoiceID string, args requests.UpdateIn
 		}
 
 		if args.PaymentInfoID != "" {
-			invoiceToSet.PaymentInfo = utils.ParseUUID(args.PaymentInfoID)
+			invoiceToSet.PaymentInfoID = utils.ParseUUID(args.PaymentInfoID)
 		} else {
-			invoiceToSet.PaymentInfo = invoice.PaymentInfo
+			invoiceToSet.PaymentInfoID = invoice.PaymentInfoID
 		}
 
 		if args.CustomerID != "" {
@@ -258,6 +258,16 @@ func GetAllInvoicesByUser(ctx context.Context, user_id string, st db.Store) ([]d
 		return []db.Invoice{}, err
 	}
 	return invs, nil
+}
+
+func GetAllInvoices(ctx context.Context, st db.Store) ([]db.Invoice, error) {
+	invs, err := st.GetAllInvoices(ctx)
+
+    if err != nil {
+        return []db.Invoice{}, err
+    }
+
+    return invs, nil
 }
 
 // get invoice items

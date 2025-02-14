@@ -32,6 +32,7 @@ type Querier interface {
 	DeleteItemsByInvoiceId(ctx context.Context, invoiceID pgtype.UUID) error
 	GetActivityLogByEntityID(ctx context.Context, entityID pgtype.UUID) ([]ActivityLog, error)
 	GetActivityLogsByUserID(ctx context.Context, userID pgtype.UUID) ([]ActivityLog, error)
+	GetAllInvoices(ctx context.Context) ([]Invoice, error)
 	GetBranchByID(ctx context.Context, id pgtype.UUID) (Branch, error)
 	GetCategoriesByBranchID(ctx context.Context, branchID pgtype.UUID) ([]Category, error)
 	GetCurrencyByID(ctx context.Context, id pgtype.UUID) (Currency, error)
@@ -54,7 +55,7 @@ type Querier interface {
 	// Get payments by invoice ID
 	GetPaymentsByInvoiceID(ctx context.Context, invoiceID pgtype.UUID) ([]Payment, error)
 	GetProductVersionsByProductID(ctx context.Context, productID pgtype.UUID) ([]ProductVersion, error)
-	GetProductsByBranchID(ctx context.Context, branchID pgtype.UUID) (Product, error)
+	GetProductsByBranchID(ctx context.Context, branchID pgtype.UUID) ([]Product, error)
 	GetProductsByID(ctx context.Context, id pgtype.UUID) (Product, error)
 	GetTotalsByStatuses(ctx context.Context, createdBy pgtype.UUID) (GetTotalsByStatusesRow, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
