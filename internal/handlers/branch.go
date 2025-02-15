@@ -10,7 +10,7 @@ import (
 )
 
 func (s *Server) SetupBranchHandler()  {
-	r:= s.serverRouter.Group("/branches")
+	r:= s.ServerRouter.Group("/branches")
 	
 	r.POST("/customer", s.AddCustomer)
 	r.GET("/customer")
@@ -70,4 +70,8 @@ func (s *Server) GetActivityLog(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, logs)
+}
+
+func (s *Server) GetBranches(c *gin.Context){
+	
 }

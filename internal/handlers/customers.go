@@ -13,8 +13,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (s *Server) SetupCustomerHandler() {
-	r := s.serverRouter.Group("/customers")
+func (s *Server) SetupCustomerHandler(r *gin.RouterGroup) {
+
+	r = r.Group("/customers")
 
 	r.GET("/hello", func(ctx *gin.Context) {
 		fmt.Println("dead last")
@@ -24,7 +25,7 @@ func (s *Server) SetupCustomerHandler() {
 	}) //helo world handlerd
 	// r.POST("/", s.CreateInvoice)
 	// r.PATCH("/:id", s.UpdateInvoice)
-	r.GET("/branch/:branch_id", s.GetCustomers)
+	r.GET("/", s.GetCustomers)
 	// r.GET("/analytics", s.GetAnalytics)
 	// r.POST("/reminder", s.SetReminder)
 	// r.GET("payment-info", s.GetPaymentInfo)

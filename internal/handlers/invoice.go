@@ -12,8 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (s *Server) SetupInvoiceHandler() {
-	r := s.serverRouter.Group("/invoices")
+func (s *Server) SetupInvoiceHandler(r *gin.RouterGroup) {
+	r = r.Group("/invoices")
 
 	r.GET("/hello", func(ctx *gin.Context) {
 		fmt.Println("dead last")
@@ -30,7 +30,6 @@ func (s *Server) SetupInvoiceHandler() {
 	r.GET("/activity", s.GetInvoiceActivityLog)
 	r.GET("/invoice/:id/items", s.GetInvoiceItems)
 	r.GET("/:id", s.GetInvoice)
-	
 
 }
 

@@ -5,13 +5,13 @@ import (
 	"log"
 
 	api "github.com/Richd0tcom/sturdy-robot/internal/handlers"
+	"github.com/Richd0tcom/sturdy-robot/internal/router"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	db "github.com/Richd0tcom/sturdy-robot/internal/db/sqlc"
 
 	//utils
 	"github.com/Richd0tcom/sturdy-robot/internal/config"
-
 	// _ "github.com/lib/pq"
 )
 
@@ -32,6 +32,8 @@ func main() {
 
 	store:= db.NewStore(connPool)
 	server:= api.NewServer(store)
+
+	router.SetupRouter(server)
 
 	err = server.Start(config.ServerAddress)
 	if err != nil {

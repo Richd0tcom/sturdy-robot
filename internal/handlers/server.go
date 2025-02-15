@@ -8,7 +8,7 @@ import (
 //serves all http request in the banking application
 type Server struct {
 	store db.Store
-	serverRouter *gin.Engine
+	ServerRouter *gin.Engine
 }
 
 //Creates a new server and sets up routing to handle request
@@ -18,19 +18,15 @@ func NewServer(store db.Store) *Server {
 	
 	server:= &Server{
 		store: store,
-		serverRouter: engine,
+		ServerRouter: engine,
 	}
-
-	server.SetupInvoiceHandler()
-	server.SetupProductHandler()
-	server.SetupCustomerHandler()
 
 	return server
 }
 
 //Starts the created sever
 func (server *Server) Start (address string) error {
-	return server.serverRouter.Run(address)
+	return server.ServerRouter.Run(address)
 }
 
 func buildErrorResponse(err error) gin.H {

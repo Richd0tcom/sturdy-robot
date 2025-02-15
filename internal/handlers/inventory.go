@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (s *Server) SetupProductHandler(r *gin.RouterGroup) {
+func (s *Server) SetupInventoryHandler(r *gin.RouterGroup) {
 	r = r.Group("/products")
 
 	r.GET("/hello", func(ctx *gin.Context) {
@@ -24,7 +24,7 @@ func (s *Server) SetupProductHandler(r *gin.RouterGroup) {
 	}) //helo world handlerd
 	// r.POST("/", s.CreateInvoice)
 	// r.PATCH("/:id", s.UpdateInvoice)
-	r.GET("/", s.FetchProducts)
+	r.GET("/", s.FetchInventory)
 	// r.GET("/analytics", s.GetAnalytics)
 	// r.POST("/reminder", s.SetReminder)
 	// r.GET("payment-info", s.GetPaymentInfo)
@@ -35,26 +35,8 @@ func (s *Server) SetupProductHandler(r *gin.RouterGroup) {
 
 }
 
-// func (s *Server) CreateProduct(ctx *gin.Context) {
-
-// 	var req  requests.CreateProduct
-
-// 	err:= ctx.ShouldBindJSON(&req)
-
-// 	if err != nil {
-// 		ctx.JSON(400, gin.H{})
-// 		return
-// 	}
-// 	p, err:= s.store.CreateProduct(ctx, db.CreateProductParams{
-// 		CategoryID: utils.ParseUUID(req.CategoryID),
-// 		BranchID: utils.ParseUUID(req.BranchID),
-// 		Name:
-
-// 	})
-// }
-
-func (s *Server) FetchProducts(c *gin.Context) {
-
+func (s *Server) FetchInventory(c *gin.Context) {
+	
 	branch_id, ok:=c.Params.Get("branch_id")
 
 	fmt.Println("I was called")
@@ -62,10 +44,9 @@ func (s *Server) FetchProducts(c *gin.Context) {
 		c.JSON(400, gin.H{})
 		return
 	}
-	p, err:= s.store.GetProductsByBranchID(c, utils.ParseUUID(branch_id))
-
+	inventory, err:=s.store.GetInventoryByBranchID(c, utils.ParseUUID(branch_id))
 	if err!=nil {
-		c.JSON(200, []db.Product{})
+		c.JSON(200, []db.Inventory{})
 	}
-	c.JSON(200, p)
+	c.JSON(200, inventory)
 }
