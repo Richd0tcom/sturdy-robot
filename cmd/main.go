@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	api "github.com/Richd0tcom/sturdy-robot/internal/handlers"
@@ -20,7 +21,7 @@ func main() {
 	
 	config, err:= config.LoadConfig(".env")
 	if err != nil {
-		log.Fatal("could not read configs ", err)
+		fmt.Println("could not read config file")
 	}
 
 	// conn, err := sql.Open(config.DbDriver, config.DbUri)
