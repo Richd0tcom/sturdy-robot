@@ -11,7 +11,15 @@ import (
 )
 
 type Querier interface {
+	CountArtCategories(ctx context.Context) (int64, error)
+	CountArtists(ctx context.Context) (int64, error)
+	CountArtworks(ctx context.Context) (int64, error)
+	CountShifts(ctx context.Context) (int64, error)
+	CountStaff(ctx context.Context) (int64, error)
 	CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (ActivityLog, error)
+	CreateArtCategory(ctx context.Context, arg CreateArtCategoryParams) (ArtCategory, error)
+	CreateArtist(ctx context.Context, arg CreateArtistParams) (Artist, error)
+	CreateArtwork(ctx context.Context, arg CreateArtworkParams) (Artwork, error)
 	CreateBranch(ctx context.Context, arg CreateBranchParams) (Branch, error)
 	CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error)
 	CreateCurrency(ctx context.Context, arg CreateCurrencyParams) (Currency, error)
@@ -27,12 +35,25 @@ type Querier interface {
 	CreatePaymentInfo(ctx context.Context, arg CreatePaymentInfoParams) (PaymentInfo, error)
 	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
 	CreateProductVersion(ctx context.Context, arg CreateProductVersionParams) (ProductVersion, error)
+	CreateShift(ctx context.Context, arg CreateShiftParams) (Shift, error)
+	CreateStaff(ctx context.Context, arg CreateStaffParams) (Staff, error)
+	CreateStaffRole(ctx context.Context, arg CreateStaffRoleParams) (StaffRole, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteArtCategory(ctx context.Context, id pgtype.UUID) error
 	DeleteCustomerByID(ctx context.Context, id pgtype.UUID) error
 	DeleteItemsByInvoiceId(ctx context.Context, invoiceID pgtype.UUID) error
+	DeleteStaff(ctx context.Context, id pgtype.UUID) error
 	GetActivityLogByEntityID(ctx context.Context, entityID pgtype.UUID) ([]ActivityLog, error)
 	GetActivityLogsByUserID(ctx context.Context, userID pgtype.UUID) ([]ActivityLog, error)
+	GetAllArtCategories(ctx context.Context) ([]ArtCategory, error)
+	GetAllArtists(ctx context.Context) ([]Artist, error)
+	GetAllArtwork(ctx context.Context) (GetAllArtworkRow, error)
 	GetAllInvoices(ctx context.Context) ([]Invoice, error)
+	GetAllShifts(ctx context.Context) (GetAllShiftsRow, error)
+	GetAllStaff(ctx context.Context) ([]GetAllStaffRow, error)
+	GetArtCategory(ctx context.Context, id pgtype.UUID) (ArtCategory, error)
+	GetArtist(ctx context.Context, id pgtype.UUID) (Artist, error)
+	GetArtwork(ctx context.Context, id pgtype.UUID) (GetArtworkRow, error)
 	GetBranchByID(ctx context.Context, id pgtype.UUID) (Branch, error)
 	GetCategoriesByBranchID(ctx context.Context, branchID pgtype.UUID) ([]Category, error)
 	GetCurrencyByID(ctx context.Context, id pgtype.UUID) (Currency, error)
@@ -57,9 +78,15 @@ type Querier interface {
 	GetProductVersionsByProductID(ctx context.Context, productID pgtype.UUID) ([]ProductVersion, error)
 	GetProductsByBranchID(ctx context.Context, branchID pgtype.UUID) ([]Product, error)
 	GetProductsByID(ctx context.Context, id pgtype.UUID) (Product, error)
+	GetShift(ctx context.Context, id pgtype.UUID) (GetShiftRow, error)
+	GetStaff(ctx context.Context, id pgtype.UUID) (GetStaffRow, error)
+	GetStaffRole(ctx context.Context, id pgtype.UUID) (StaffRole, error)
 	GetTotalsByStatuses(ctx context.Context, createdBy pgtype.UUID) (GetTotalsByStatusesRow, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, id pgtype.UUID) (User, error)
+	UpdateArtCategory(ctx context.Context, arg UpdateArtCategoryParams) (ArtCategory, error)
+	UpdateArtist(ctx context.Context, arg UpdateArtistParams) (Artist, error)
+	UpdateArtwork(ctx context.Context, arg UpdateArtworkParams) (Artwork, error)
 	// Update inventory
 	UpdateInventory(ctx context.Context, arg UpdateInventoryParams) (Inventory, error)
 	UpdateInvoice(ctx context.Context, arg UpdateInvoiceParams) (Invoice, error)
@@ -70,6 +97,9 @@ type Querier interface {
 	UpdatePaymentInfo(ctx context.Context, arg UpdatePaymentInfoParams) error
 	UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error)
 	UpdateProductVersion(ctx context.Context, arg UpdateProductVersionParams) (ProductVersion, error)
+	UpdateShift(ctx context.Context, arg UpdateShiftParams) (Shift, error)
+	UpdateStaff(ctx context.Context, arg UpdateStaffParams) (Staff, error)
+	UpdateStaffRole(ctx context.Context, arg UpdateStaffRoleParams) (StaffRole, error)
 }
 
 var _ Querier = (*Queries)(nil)

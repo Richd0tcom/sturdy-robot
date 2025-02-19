@@ -39,7 +39,6 @@ func (s *Server) SetupCustomerHandler(r *gin.RouterGroup) {
 func (s *Server) GetCustomers(c *gin.Context) {
 	branch_id, ok:=c.Params.Get("branch_id")
 
-	fmt.Println("I was called")
 	if !ok {
 		c.JSON(400, gin.H{})
 		return

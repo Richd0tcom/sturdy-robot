@@ -63,6 +63,39 @@ type ActivityLog struct {
 	UserID     pgtype.UUID        `json:"user_id"`
 }
 
+type ArtCategory struct {
+	ID          pgtype.UUID      `json:"id"`
+	Name        string           `json:"name"`
+	Description pgtype.Text      `json:"description"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
+}
+
+type Artist struct {
+	ID          pgtype.UUID      `json:"id"`
+	Name        string           `json:"name"`
+	Biography   pgtype.Text      `json:"biography"`
+	BirthDate   pgtype.Date      `json:"birth_date"`
+	DeathDate   pgtype.Date      `json:"death_date"`
+	Nationality pgtype.Text      `json:"nationality"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
+}
+
+type Artwork struct {
+	ID               pgtype.UUID      `json:"id"`
+	Title            string           `json:"title"`
+	ArtistID         pgtype.UUID      `json:"artist_id"`
+	CategoryID       pgtype.UUID      `json:"category_id"`
+	YearCreated      pgtype.Int4      `json:"year_created"`
+	Medium           pgtype.Text      `json:"medium"`
+	Dimensions       pgtype.Text      `json:"dimensions"`
+	Description      pgtype.Text      `json:"description"`
+	AcquisitionDate  pgtype.Date      `json:"acquisition_date"`
+	ConditionStatus  pgtype.Text      `json:"condition_status"`
+	LocationInMuseum pgtype.Text      `json:"location_in_museum"`
+	ImageUrl         pgtype.Text      `json:"image_url"`
+	CreatedAt        pgtype.Timestamp `json:"created_at"`
+}
+
 type Branch struct {
 	ID             pgtype.UUID        `json:"id"`
 	Name           string             `json:"name"`
@@ -194,6 +227,36 @@ type ProductVersion struct {
 	StockQuantity   pgtype.Int4        `json:"stock_quantity"`
 	ReorderPoint    pgtype.Int4        `json:"reorder_point"`
 	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+}
+
+type Shift struct {
+	ID        pgtype.UUID      `json:"id"`
+	StaffID   pgtype.UUID      `json:"staff_id"`
+	ShiftDate pgtype.Date      `json:"shift_date"`
+	StartTime pgtype.Time      `json:"start_time"`
+	EndTime   pgtype.Time      `json:"end_time"`
+	Status    pgtype.Text      `json:"status"`
+	Notes     pgtype.Text      `json:"notes"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+}
+
+type Staff struct {
+	ID        pgtype.UUID      `json:"id"`
+	FirstName string           `json:"first_name"`
+	LastName  string           `json:"last_name"`
+	RoleID    pgtype.UUID      `json:"role_id"`
+	Email     string           `json:"email"`
+	Phone     pgtype.Text      `json:"phone"`
+	HireDate  pgtype.Date      `json:"hire_date"`
+	Status    pgtype.Text      `json:"status"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+}
+
+type StaffRole struct {
+	ID          pgtype.UUID      `json:"id"`
+	Title       string           `json:"title"`
+	Description pgtype.Text      `json:"description"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
 }
 
 type User struct {
